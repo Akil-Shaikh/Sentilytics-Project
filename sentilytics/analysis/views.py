@@ -26,9 +26,9 @@ nltk.download("wordnet")
 nltk.download('punkt_tab')
 
 # importing models
-with open("C:/Users/akil/Desktop/Trained Model/Models/tfidf_vectorizer.pkl", "rb") as file:
+with open("C:/Users/akil/Desktop/Sentilytics/Models/tfidf_vectorizer.pkl", "rb") as file:
     tfidf_model = pickle.load(file)
-with open("C:/Users/akil/Desktop/Trained Model/Models/sentiment_model.pkl", "rb") as file:
+with open("C:/Users/akil/Desktop/Sentilytics/Models/sentiment_model.pkl", "rb") as file:
     sentiment_model = pickle.load(file)
 
 #cleaning class
