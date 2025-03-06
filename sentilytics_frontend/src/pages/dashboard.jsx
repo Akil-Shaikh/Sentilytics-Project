@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/dashboard.css";
 
 const formatDate = (isoString) => {
     const dateObj = new Date(isoString);
@@ -28,7 +29,7 @@ const Dashboard = () => {
 
         const fetchBatches = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/api/get/multiple/batch/", {
+                const response = await fetch("http://127.0.0.1:8000/api/multiple/batch/", {
                     method: "GET",
                     headers: {
                         Authorization: `Token ${token}`,
@@ -49,6 +50,7 @@ const Dashboard = () => {
         };
 
         fetchBatches();
+        // handleSort(sortField)
     }, [navigate]);
 
     // Sorting Function
@@ -90,12 +92,10 @@ const Dashboard = () => {
     };
 
     return (
-        <div style={{ margin: "auto", padding: "20px" }}>
+        <div className="dashboard-container">
             <h2>Welcome, {localStorage.getItem("username")}!</h2>
             <h3>Your Batch Comments</h3>
-
-            {/* Filter Section */}
-            <div style={{ marginBottom: "10px" }}>
+            <div className="dashboard-filter">
                 <label>Filter by Type:</label>
                 <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
                     <option value="">All</option>
@@ -104,7 +104,7 @@ const Dashboard = () => {
                     <option value="Youtube">Youtube Comment</option>
                 </select>
 
-                <label style={{ marginLeft: "10px" }}>Filter by Sentiment:</label>
+                <label>Filter by Sentiment:</label>
                 <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)}>
                     <option value="">All</option>
                     <option value="positive">Positive</option>
@@ -112,22 +112,22 @@ const Dashboard = () => {
                     <option value="neutral">Neutral</option>
                 </select>
 
-                <button onClick={handleFilter} style={{ marginLeft: "10px", cursor: "pointer" }}>Apply Filters</button>
+                <button onClick={handleFilter} className="filter-btn">Apply Filters</button>
             </div>
 
             {filteredBatches.length > 0 ? (
-                <table border="1" width="100%" cellPadding="8" style={{ borderCollapse: "collapse", textAlign: "left" }}>
+                <table border="1" width="100%" cellPadding="8" className="dashboard-table">
                     <thead>
-                        <tr style={{ backgroundColor: "#f4f4f4" }}>
+                        <tr>
                             <th>Batch ID</th>
-                            <th onClick={() => handleSort("comment_type")} style={{ cursor: "pointer" }}>
+                            <th onClick={() => handleSort("comment_type")}>
                                 Type {sortField === "comment_type" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                             </th>
-                            <th onClick={() => handleSort("date_created")} style={{ cursor: "pointer" }}>
+                            <th onClick={() => handleSort("date_created")}>
                                 Date Created {sortField === "date_created" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                             </th>
                             <th>Time</th>
-                            <th onClick={() => handleSort("over_all_sentiment")} style={{ cursor: "pointer" }}>
+                            <th onClick={() => handleSort("over_all_sentiment")}>
                                 Overall Sentiment {sortField === "over_all_sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                             </th>
                             <th>Action</th>
@@ -142,9 +142,9 @@ const Dashboard = () => {
                                     <td>{batch.comment_type}</td>
                                     <td>{date}</td>
                                     <td>{time}</td>
-                                    <td>{batch.over_all_sentiment || "N/A"}</td>
+                                    <td className={`dashboard-${batch.over_all_sentiment}`}>{batch.over_all_sentiment || "N/A"}</td>
                                     <td>
-                                        <button onClick={() => navigate(`/batch/${batch.id}`)} style={{ cursor: "pointer" }}>
+                                        <button onClick={() => navigate(`/batch/${batch.id}`)} className="table-btn">
                                             View Comments
                                         </button>
                                     </td>

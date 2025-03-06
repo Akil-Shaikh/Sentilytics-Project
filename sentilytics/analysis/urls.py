@@ -1,12 +1,14 @@
 from django.urls import path
 
-from .views import singleCommentAnalysis,user_single_comments,multipleCommentsAnalysis,user_batch,batch_comments,youtube_analysis
+from .views import SingleCommentAnalysis,MultipleCommentsAnalysis,Batch,YoutubeCommentsAnalysis
 # generate_visualizations
 urlpatterns = [
-    path('analyze/single/',singleCommentAnalysis),
-    path('get/single/user/',user_single_comments),
-    path('analyze/multiple/',multipleCommentsAnalysis),
-    path('analyze/multipleYoutube/',youtube_analysis),
-    path('get/multiple/batch/',user_batch),
-    path('get/multiple/batch/<int:batch_id>/',batch_comments),
+    path('single/',SingleCommentAnalysis.as_view()),
+    path('single/<int:pk>/',SingleCommentAnalysis.as_view()),
+    # path('get/single/user/',user_single_comments),
+    path('analyze/multiple/',MultipleCommentsAnalysis.as_view()),
+    path('analyze/multipleYoutube/',YoutubeCommentsAnalysis.as_view()),
+    path('multiple/batch/',Batch.as_view()),
+    path('multiple/batch/<int:batch_id>/',Batch.as_view()),
+    path('multiple/batch/<int:batch_id>/<int:pk>/',Batch.as_view()),
 ]

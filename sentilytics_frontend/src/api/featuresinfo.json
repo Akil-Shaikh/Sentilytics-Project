@@ -12,7 +12,7 @@
             "Enables integration with other systems using Excel-compatible data",
             "Provides a clear and accessible record of insights for presentations or decision-making"
         ],
-        "image": "public/images/excel.jpg"
+        "image": "/images/excel.jpg"
     },
     {
         "id": 2,
@@ -26,7 +26,7 @@
             "Simplifies complex data into easy-to-understand visuals",
             "Aids in presenting findings to stakeholders effectively"
         ],
-        "image": "public/images/graph.jpg"
+        "image": "/images/graph.jpg"
     },
     {
         "id": 3,
@@ -39,7 +39,7 @@
             "Saves time by automatically processing and displaying top words",
             "Provides valuable insights for content or customer engagement improvements"
         ],
-        "image": "public/images/word.jpg"
+        "image": "/images/word.jpg"
     }
    
 ]

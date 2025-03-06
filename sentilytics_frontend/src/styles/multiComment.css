@@ -1,6 +1,9 @@
 /* background-color: #FFF7ED;
     color: #F97316; */
 
+.detail-btn{
+    width: 10rem;
+}
 
 .multi-container {
     background-color: #F97316;
@@ -149,12 +152,20 @@
 
 .positive {
     background-color: #45a745;
+    text-transform: capitalize;
 }
 
 .negative {
+    text-transform: capitalize;
     background-color: #d82d2d;
 }
 
 .none {
+    text-transform: capitalize;
     background-color: grey;
 }
+
+/* .multi-chart {
+    width: 50%;
+    height: 50%;
+} */
