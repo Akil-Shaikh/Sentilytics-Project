@@ -10,6 +10,10 @@
     gap: 2rem;
 }
 
+.detail-btn{
+    width: 10rem;
+}
+
 .yt-container h1 {
     color: #FFF7ED;
     font-size: 3rem;
@@ -128,3 +132,7 @@
 .None {
     background-color: grey;
 }
+
+/* .chart{
+    height: 1rem;
+} */

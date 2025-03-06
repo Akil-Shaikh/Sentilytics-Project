@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import "../styles/batchdetails.css"
 
 const formatDate = (isoString) => {
     return new Date(isoString).toLocaleString("en-US", {
@@ -9,18 +10,20 @@ const formatDate = (isoString) => {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
-        hour12: true, // ✅ Show AM/PM format
+        hour12: true,
     });
 };
 
 const BatchDetails = () => {
     const { batch_id } = useParams();
     const navigate = useNavigate();
-
     const [batchData, setBatchData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filter, setFilter] = useState("all"); // ✅ Filtering state
+    const [filter, setFilter] = useState("all");
+    const [editMode,setEditMode]=useState(false);
+    const [editedValue, seteditedValue] = useState({});
+    const [loadingEdits, setLoadingEdits] = useState({});
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -32,7 +35,7 @@ const BatchDetails = () => {
 
         const fetchBatchDetails = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/get/multiple/batch/${batch_id}/`, {
+                const response = await fetch(`http://127.0.0.1:8000/api/multiple/batch/${batch_id}/`, {
                     method: "GET",
                     headers: {
                         Authorization: `Token ${token}`,
@@ -65,62 +68,115 @@ const BatchDetails = () => {
         return <h2>{error}</h2>;
     }
 
-    // ✅ Filter comments based on sentiment selection
     const filteredComments = batchData?.comments?.filter((comment) => {
         if (filter === "all") return true;
         return comment.sentiment.toLowerCase() === filter;
     });
+    const toggleEditMode = () => {
+        if (!editMode) {
+            alert("You can only edit a sentiment once. Please provide genuine feedback to help improve the model.");
+        }
+        setEditMode(!editMode);
+    };
+
+    const handleSubmitEdit = async (comment) => {
+        const token = localStorage.getItem("token");
+        const newSentiment = editedValue[comment.id]?.trim();
+        console.log(newSentiment)
+        if (!newSentiment || newSentiment === comment.sentiment) return;
+
+        setLoadingEdits((prev) => ({ ...prev, [comment.id]: true }));
+        console.log(loadingEdits)
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/multiple/batch/${batch_id}/${comment.id}/`, {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Token ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ sentiment: newSentiment }),
+            });
+
+            if (response.ok) {
+                setBatchData((prevData) => {
+                    const updatedComments = prevData.comments.map((c) =>
+                        c.id === comment.id ? { ...c, sentiment: newSentiment, is_updated: true } : c
+                    );
+                    return { ...prevData, comments: updatedComments };
+                });
+            }
+        } catch (error) {
+            console.error("Error updating sentiment:", error);
+        } finally {
+            setLoadingEdits((prev) => ({ ...prev, [comment.id]: false }));
+        }
+    };
+
+    
 
     return (
-        <div>
-            <button onClick={() => navigate(-1)}>⬅ Go Back</button>
-
-            <h2>Batch Details</h2>
-            <p><strong>Batch ID:</strong> {batchData?.batch_id}</p>
-            <p><strong>Type:</strong> {batchData?.comment_type}</p>
-            <p><strong>Date Created:</strong> {formatDate(batchData?.date_created)}</p>
-
-            {/* ✅ Dropdown for filtering comments */}
-            <label><strong>Filter Comments:</strong></label>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-                <option value="all">All</option>
-                <option value="positive">Positive</option>
-                <option value="negative">Negative</option>
-                <option value="none">None</option>
-            </select>
-
-            <h3>Comments</h3>
-            <h3>Sentiment Analysis Charts</h3>
-            {batchData?.BarChart && (
-                <div>
-                    <h4>Sentiment Distribution</h4>
-                    <img src={batchData.BarChart} alt="Sentiment Bar Chart" />
+        <div className="batch-container">
+            <div className="batch-details-all">
+                <div className="batch-data">
+                    <h2>Batch Details</h2>
+                    <p><strong>Batch ID:</strong> {batchData?.batch_id}</p>
+                    <p><strong>Type:</strong> {batchData?.comment_type}</p>
+                    <p><strong>Date Created:</strong> {formatDate(batchData?.date_created)}</p>
                 </div>
-            )}
-
-            {batchData?.wordcloud && (
-                <div>
-                    <h4>Word Cloud</h4>
-                    <img src={batchData.wordcloud} alt="Word Cloud" />
+                <div className="batch-chart-all">
+                    <h3>Sentiment Analysis Charts</h3>
+                    <div className="batch-chart">
+                        {batchData?.BarChart && <img src={batchData.BarChart} alt="Sentiment Bar Chart" />}
+                        {batchData?.wordcloud && <img src={batchData.wordcloud} alt="Word Cloud" />}
+                    </div>
                 </div>
-            )}
-            {filteredComments.length > 0 ? (
-                <ul>
-                    {filteredComments.map((comment, index) => (
-                        <li key={index} style={{ marginBottom: "15px", padding: "10px", borderBottom: "1px solid #ccc" }}>
-                            <strong>Comment:</strong> {comment.comment} <br />
-                            <strong>Cleaned:</strong> {comment.cleaned_text} <br />
-                            <strong>Sentiment:</strong> {comment.sentiment} <br />
-                            <strong>Score:</strong> {comment.score}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No comments found for the selected sentiment.</p>
-            )}
+            </div>
+            
+            <button onClick={toggleEditMode}>{editMode?"Exit Edit Mode":"Enable Edit Mode"}</button>
+            <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
 
-            {/* ✅ Sentiment Analysis Charts */}
-           
+            <div className="batch-comment-all">
+                <div className="filter-comment">
+                    <label><strong>Filter Comments:</strong></label>
+                    <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                        <option value="all">All</option>
+                        <option value="positive">Positive</option>
+                        <option value="negative">Negative</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+                {filteredComments.length > 0 ? (
+                    <ul className="batch-comment-list">
+                        {filteredComments.map((comment) => (
+                            <li key={comment.id} className={`batch-comment batch-${comment.sentiment}`}>
+                                <p><strong>Comment:</strong> {comment.comment}</p>
+                                <p><strong>Cleaned:</strong> {comment.cleaned_text}</p>
+                                <p><strong>Sentiment:</strong> {comment.sentiment}</p>
+                                {!editMode && !comment.is_updated &&(<p><strong>Score</strong>{comment.score}</p>)}
+                                {editMode && !comment.is_updated && (
+                                    <>
+                                        <select
+                                            value={editedValue[comment.id] || comment.sentiment}
+                                            onChange={(e) => seteditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+                                            disabled={loadingEdits[comment.id]}
+                                        >
+                                            <option value="positive">Positive</option>
+                                            <option value="negative">Negative</option>
+                                            <option value="none">None</option>
+                                        </select>
+                                        <button onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
+                                            {loadingEdits[comment.id] ? "Saving..." : "Confirm"}
+                                        </button>
+                                    </>
+                                )}
+                                {comment.is_updated && <p>(Sentiment corrected)</p>}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No comments found for the selected sentiment.</p>
+                )}
+            </div>
         </div>
     );
 };

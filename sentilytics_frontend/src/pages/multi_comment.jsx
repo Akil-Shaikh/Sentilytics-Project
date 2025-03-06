@@ -12,7 +12,7 @@ const MultiComment = () => {
             navigate("/login");
         }
     }, [navigate]);
-
+    const [batchId, setBatchId] = useState("");
     const [file, setFile] = useState(null);
     const [column, setColumn] = useState("");
     const [analyzedComments, setAnalyzedComments] = useState([]);
@@ -53,6 +53,7 @@ const MultiComment = () => {
             console.log("Response Data:", data);
 
             if (response.ok) {
+                setBatchId(data.batch_id)
                 setAnalyzedComments(data.analyzed_comments); // ✅ Store data in state
                 setbarchart(data.BarChart); // ✅ Store data in state
                 setwordcloud(data.wordcloud); // ✅ Store data in state
@@ -74,34 +75,35 @@ const MultiComment = () => {
                 <h1>Multiple Comment Analysis</h1>
                 <form onSubmit={handleSubmit} className="multi-form">
                     <label htmlFor="file-upload" className="multi-file">Choose Files</label>
-                    <input type="file" id="file-upload" accept=".csv" name="file" onChange={handleFileChange} className="hidden-file" />
-                    <input type="text" name="column" value={column} onChange={handleColumnChange} placeholder="Enter column name" className="multi-input" />
-                    <input type="submit" value="Submit" className="multi-submit" />
+                    <input type="file" id="file-upload" accept=".csv" name="file" onChange={handleFileChange} className="hidden-file" disabled={loading} />
+                    <input type="text" name="column" value={column} onChange={handleColumnChange} placeholder="Enter column name" className="multi-input" disabled={loading} />
+                    <input type="submit" value="Submit" className="multi-submit" disabled={loading} />
                 </form>
             </div>
             <div className="comments-section">
                 <h1>Analyzed Comments</h1>
                 {
-                    loading?
-                        <p>Analyzing Comments....</p>
-                    :
-                    analyzedComments.length > 0 ? (
-                        <>
-                            {BarChart && <img src={BarChart} alt="Bar Chart" />}
-                            {wordcloud && <img src={wordcloud} alt="Word Cloud" />}
-                            <ul className="comments">
-                                {analyzedComments.map((comment, index) => (
-                                    <li key={index} className={comment.sentiment}>
-                                        <strong>Comment:</strong> {comment.comment} <br />
-                                        <strong>Sentiment:</strong> {comment.sentiment} <br />
-                                        <strong>Score:</strong> {comment.score}
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    ) : (
-                        <p>No analyzed comments yet.</p>
-                    )}
+                    loading ? (<p>Performing Analaysis</p>)
+                        : analyzedComments.length > 0 ? (
+                            <>
+                                <button onClick={() => navigate(`/batch/${batchId}`)} className="detail-btn">Get More Details</button>
+                                <div className="multi-charts">
+                                    {BarChart && <img src={BarChart} alt="Bar Chart" className="multi-chart" />}
+                                    {wordcloud && <img src={wordcloud} alt="Word Cloud" className="multi-chart" />}
+                                </div>
+                                <ul className="comments">
+                                    {analyzedComments.map((comment, index) => (
+                                        <li key={index} className={comment.sentiment}>
+                                            <strong>Comment:</strong> {comment.comment} <br />
+                                            <strong>Sentiment:</strong> {comment.sentiment} <br />
+                                            <strong>Score:</strong> {comment.score}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )
+                            : (<p>No analyzed comments yet.</p>)
+                }
             </div>
         </>
 
