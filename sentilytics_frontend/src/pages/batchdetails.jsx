@@ -142,7 +142,7 @@ const BatchDetails = () => {
                         <option value="all">All</option>
                         <option value="positive">Positive</option>
                         <option value="negative">Negative</option>
-                        <option value="none">None</option>
+                        <option value="neutral">Neutral</option>
                     </select>
                 </div>
                 {filteredComments.length > 0 ? (
@@ -152,7 +152,7 @@ const BatchDetails = () => {
                                 <p><strong>Comment:</strong> {comment.comment}</p>
                                 <p><strong>Cleaned:</strong> {comment.cleaned_text}</p>
                                 <p><strong>Sentiment:</strong> {comment.sentiment}</p>
-                                {!editMode && !comment.is_updated &&(<p><strong>Score</strong>{comment.score}</p>)}
+                                {!editMode && !comment.is_updated &&(<p><strong>Score: </strong>{comment.score}</p>)}
                                 {editMode && !comment.is_updated && (
                                     <>
                                         <select
@@ -162,7 +162,7 @@ const BatchDetails = () => {
                                         >
                                             <option value="positive">Positive</option>
                                             <option value="negative">Negative</option>
-                                            <option value="none">None</option>
+                                            <option value="neutral">Neutral</option>
                                         </select>
                                         <button onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
                                             {loadingEdits[comment.id] ? "Saving..." : "Confirm"}

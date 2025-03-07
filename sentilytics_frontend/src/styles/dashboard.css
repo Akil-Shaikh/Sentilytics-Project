@@ -92,3 +92,8 @@
     text-transform: capitalize;
     font-weight: bold;
 }
+.dashboard-neutral {
+    color: grey;
+    text-transform: capitalize;
+    font-weight: bold;
+}

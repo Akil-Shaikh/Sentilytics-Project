@@ -1,37 +1,34 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-import pickle
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-import re
-import nltk
-import pandas as pd
-from .models import SingleComment, BatchComment, Comment,CorrectedSentiment
+from .models import SingleComment, BatchComment, Comment
 from .serializers import SingleCommentSerializer,BatchCommentSerializer,CommentSerializer,CorrectedSentimentSerializer
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from utils import sentiment_model,tfidf_vectorizer
+from django.db.models import Count
+from sentilytics.settings import YOUTUBE_API_KEY
+
+from django.core.exceptions import ObjectDoesNotExist #?
+import traceback
+
+import pandas as pd
+import re
+from googleapiclient.discovery import build
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from io import BytesIO
-from googleapiclient.discovery import build
 import base64
-from sentilytics.settings import YOUTUBE_API_KEY
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count
-import traceback
+
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 nltk.download("stopwords")
 nltk.download("wordnet")
 nltk.download('punkt_tab')
-
-# importing models
-with open("C:/Users/akil/Desktop/Sentilytics/Models/tfidf_vectorizer.pkl", "rb") as file:
-    tfidf_model = pickle.load(file)
-with open("C:/Users/akil/Desktop/Sentilytics/Models/sentiment_model.pkl", "rb") as file:
-    sentiment_model = pickle.load(file)
 
 #cleaning class
 class Preprocessor:
@@ -65,7 +62,6 @@ pre = Preprocessor()
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #single comment analysis
-@permission_classes([IsAuthenticated])  
 class SingleCommentAnalysis(APIView):
     permission_classes=[IsAuthenticated]
     def post(self,request):
@@ -73,16 +69,16 @@ class SingleCommentAnalysis(APIView):
             data = request.data
             original_text = data["text"]
             cleaned_text = pre.clean_text(original_text)
-            vec_text = tfidf_model.transform([cleaned_text])
+            vec_text = tfidf_vectorizer.transform([cleaned_text])
             sentiment = sentiment_model.predict(vec_text)[0]
             score = sentiment_model.predict_proba(vec_text)[0]
-            sentiment_map = {1: "positive", 0: "negative"}
+            sentiment_map = {0:"negative",1:"neutral", 2:"positive"}
             comment_data = {
                 "user": request.user.id,
                 "comment": original_text,
                 "cleaned_text": cleaned_text,
-                "sentiment": sentiment_map[sentiment] if cleaned_text else "none",
-                "Score": round(score[sentiment], 2) if not cleaned_text == "none" else 0,
+                "sentiment": sentiment_map[sentiment],
+                "Score": round(score[sentiment], 2)
             }
             serializer = SingleCommentSerializer(data=comment_data)
 
@@ -105,8 +101,11 @@ class SingleCommentAnalysis(APIView):
         corrected_sentiment = request.data.get("sentiment")
         
         # Update the original SingleComment object
-        if corrected_sentiment not in ["positive", "negative", "none"]:
-                return Response({"error": "Invalid sentiment value"}, status=status.HTTP_400_BAD_REQUEST)
+        if corrected_sentiment not in ["positive", "negative", "neutral"]:
+            return Response({"error": "Invalid sentiment value"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if comment.sentiment==corrected_sentiment:
+            return Response({"error": "same sentiment value as predicted"}, status=status.HTTP_400_BAD_REQUEST)
         print(request.user)
         corrected_data = {
             "user": request.user.id,
@@ -173,16 +172,14 @@ class MultipleCommentsAnalysis(APIView):
             df["cleaned_text"] = df[column].astype(str).apply(pre.clean_text)
 
             # Perform Sentiment Analysis
-            vec_text = tfidf_model.transform(df["cleaned_text"])
+            vec_text = tfidf_vectorizer.transform(df["cleaned_text"])
             df["sentiment"] = sentiment_model.predict(vec_text)
-            sentiment_map = {1: "positive", 0: "negative"}
-            df[["score_n", "score_p"]] = sentiment_model.predict_proba(vec_text)
-            df["score_n"] = df["score_n"].round(2)
+            sentiment_map = {0: "negative",1:"neutral",2: "positive"}
+            df[["score_neg","score_neu", "score_p"]] = sentiment_model.predict_proba(vec_text)
+            df["score_neg"] = df["score_neg"].round(2)
+            df["score_neu"] = df["score_neu"].round(2)
             df["score_p"] = df["score_p"].round(2)
             df["sentiment"] = df["sentiment"].map(sentiment_map)
-
-            # Handle empty cleaned text cases
-            df.loc[df["cleaned_text"] == "", ["sentiment", "score_p", "score_n"]] = ["none", 0, 0]
 
             # Sentiment Distribution Plot
             sentiment_counts = df["sentiment"].value_counts()
@@ -191,11 +188,11 @@ class MultipleCommentsAnalysis(APIView):
 
             plt.figure(figsize=(6, 4),facecolor="lightblue")
             plt.bar(
-                x=["Positive", "Negative", "None"],
+                x=["Positive", "Negative", "Neutral"],
                 height=[
                     sentiment_counts.get("positive", 0),
                     sentiment_counts.get("negative", 0),
-                    sentiment_counts.get("none", 0),
+                    sentiment_counts.get("neutral", 0),
                 ],
                 color=["g", "r", "grey"],
             )
@@ -220,7 +217,7 @@ class MultipleCommentsAnalysis(APIView):
             batch = BatchComment.objects.create(
                 user=request.user, 
                 comment_type=file_type, 
-                over_all_sentiment=sentiment_counts.idxmax() if not sentiment_counts.empty else "none"
+                over_all_sentiment=sentiment_counts.idxmax()
             )
 
             # Prepare comment objects for bulk creation
@@ -230,7 +227,7 @@ class MultipleCommentsAnalysis(APIView):
                     comment=row[column],
                     cleaned_text=row["cleaned_text"],
                     sentiment=row["sentiment"],
-                    score=row["score_p"] if row["sentiment"] == "positive" else row["score_n"],
+                    score=row["score_p"] if row["sentiment"] == "positive" else row["score_neg"] if row["sentiment"]=="negative" else row["score_neu"],
                 )
                 for _, row in df.iterrows()
             ]
@@ -303,27 +300,23 @@ class YoutubeCommentsAnalysis(APIView):
         except Exception as e:
             return Response({"error": f"Failed to fetch comments: {str(e)}"}, status=500)
         df["cleaned_text"] = df["text"].astype(str).apply(pre.clean_text)
-        vec_text = tfidf_model.transform(df["cleaned_text"])
+        vec_text = tfidf_vectorizer.transform(df["cleaned_text"])
         df["sentiment"] = sentiment_model.predict(vec_text)
-        sentiment_map = {1: "positive", 0: "negative"}
-        df[["score_n", "score_p"]] = sentiment_model.predict_proba(vec_text)
-        df["score_n"] = df["score_n"].round(2)
+        sentiment_map = {0: "negative",1:"neutral",2: "positive"}
+        df[["score_neg","score_neu", "score_p"]] = sentiment_model.predict_proba(vec_text)
+        df["score_neg"] = df["score_neg"].round(2)
+        df["score_neu"] = df["score_neu"].round(2)
         df["score_p"] = df["score_p"].round(2)
         df["sentiment"] = df["sentiment"].map(sentiment_map)
-        df.loc[df["cleaned_text"] == "", ["sentiment", "score_p", "score_n"]] = [
-            "none",
-            0,
-            0,
-        ]
         sentiment_counts = df["sentiment"].value_counts()
         buf_bar = BytesIO()
         buf_word = BytesIO()
         plt.bar(
-                x=["Positive", "Negative", "None"],
+                x=["Positive", "Negative", "Neutral"],
                 height=[
                     sentiment_counts.get("positive",0),
                     sentiment_counts.get("negative",0),
-                    sentiment_counts.get("none",0),
+                    sentiment_counts.get("neutral",0),
                 ],
                 color=["g", "r", "grey"],
             )
@@ -348,7 +341,7 @@ class YoutubeCommentsAnalysis(APIView):
                 comment=row["text"],
                 cleaned_text=row["cleaned_text"],
                 sentiment=row["sentiment"],
-                score=row["score_p"] if row["sentiment"] == "positive" else row["score_n"],
+                score=row["score_p"] if row["sentiment"] == "positive" else row["score_neg"] if row["sentiment"]=="negative" else row["score_neu"],
             )
             for _, row in df.iterrows()
         ]
@@ -371,6 +364,7 @@ class YoutubeCommentsAnalysis(APIView):
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #batch comments class
 class Batch(APIView):
+    
     permission_classes=[IsAuthenticated]
 
     def get(self,request, batch_id=None):
@@ -400,11 +394,11 @@ class Batch(APIView):
         # plt.figure(figsize=(6, 4))
         plt.figure(figsize=(6, 4),facecolor="lightblue")
         plt.bar(
-                x=["Positive", "Negative", "None"],
+                x=["Positive", "Negative", "Neutral"],
                 height=[
                     sentiment_counts.get("positive",0),
                     sentiment_counts.get("negative",0),
-                    sentiment_counts.get("none",0),
+                    sentiment_counts.get("neutral",0),
                 ],
                 color=["g", "r", "grey"],
             )
@@ -447,9 +441,10 @@ class Batch(APIView):
         corrected_sentiment = request.data.get("sentiment")
         
         # Update the original SingleComment object
-        if corrected_sentiment not in ["positive", "negative", "none"]:
-                return Response({"error": "Invalid sentiment value"}, status=status.HTTP_400_BAD_REQUEST)
-
+        if corrected_sentiment not in ["positive", "negative", "neutral"]:
+            return Response({"error": "Invalid sentiment value"}, status=status.HTTP_400_BAD_REQUEST)
+        if comment.sentiment==corrected_sentiment:
+            return Response({"error": "Same sentiment value as predicted"}, status=status.HTTP_400_BAD_REQUEST)
         corrected_data = {
             "user": request.user.id,
             "original_comment": comment.comment,

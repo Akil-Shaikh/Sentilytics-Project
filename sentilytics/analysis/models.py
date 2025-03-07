@@ -31,7 +31,7 @@ class BatchComment(models.Model):
     SENTIMENT_CHOICES = [
         ('positive', '+ve'),
         ('negative', '-ve'),
-        ('none', 'N/A'),
+        ('neutral', 'N/A'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Links to registered user
     comment_type = models.CharField(max_length=20, choices=COMMENT_TYPE_CHOICES)  # Type of batch
