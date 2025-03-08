@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "../styles/batchdetails.css"
+import "../styles/batchdetails.css";
 
 const formatDate = (isoString) => {
     return new Date(isoString).toLocaleString("en-US", {
@@ -21,8 +21,8 @@ const BatchDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState("all");
-    const [editMode,setEditMode]=useState(false);
-    const [editedValue, seteditedValue] = useState({});
+    const [editMode, setEditMode] = useState(false);
+    const [editedValue, setEditedValue] = useState({});
     const [loadingEdits, setLoadingEdits] = useState({});
 
     useEffect(() => {
@@ -72,6 +72,7 @@ const BatchDetails = () => {
         if (filter === "all") return true;
         return comment.sentiment.toLowerCase() === filter;
     });
+
     const toggleEditMode = () => {
         if (!editMode) {
             alert("You can only edit a sentiment once. Please provide genuine feedback to help improve the model.");
@@ -82,11 +83,11 @@ const BatchDetails = () => {
     const handleSubmitEdit = async (comment) => {
         const token = localStorage.getItem("token");
         const newSentiment = editedValue[comment.id]?.trim();
-        console.log(newSentiment)
+
         if (!newSentiment || newSentiment === comment.sentiment) return;
 
         setLoadingEdits((prev) => ({ ...prev, [comment.id]: true }));
-        console.log(loadingEdits)
+
         try {
             const response = await fetch(`http://127.0.0.1:8000/api/multiple/batch/${batch_id}/${comment.id}/`, {
                 method: "PATCH",
@@ -100,7 +101,7 @@ const BatchDetails = () => {
             if (response.ok) {
                 setBatchData((prevData) => {
                     const updatedComments = prevData.comments.map((c) =>
-                        c.id === comment.id ? { ...c, sentiment: newSentiment, is_updated: true } : c
+                        c.id === comment.id ? { ...c, is_updated: true } : c
                     );
                     return { ...prevData, comments: updatedComments };
                 });
@@ -111,8 +112,6 @@ const BatchDetails = () => {
             setLoadingEdits((prev) => ({ ...prev, [comment.id]: false }));
         }
     };
-
-    
 
     return (
         <div className="batch-container">
@@ -131,8 +130,8 @@ const BatchDetails = () => {
                     </div>
                 </div>
             </div>
-            
-            <button onClick={toggleEditMode}>{editMode?"Exit Edit Mode":"Enable Edit Mode"}</button>
+
+            <button onClick={toggleEditMode}>{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
             <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
 
             <div className="batch-comment-all">
@@ -152,12 +151,12 @@ const BatchDetails = () => {
                                 <p><strong>Comment:</strong> {comment.comment}</p>
                                 <p><strong>Cleaned:</strong> {comment.cleaned_text}</p>
                                 <p><strong>Sentiment:</strong> {comment.sentiment}</p>
-                                {!editMode && !comment.is_updated &&(<p><strong>Score: </strong>{comment.score}</p>)}
+                                {!editMode && !comment.is_updated && (<p><strong>Score: </strong>{comment.score}</p>)}
                                 {editMode && !comment.is_updated && (
                                     <>
                                         <select
                                             value={editedValue[comment.id] || comment.sentiment}
-                                            onChange={(e) => seteditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+                                            onChange={(e) => setEditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
                                             disabled={loadingEdits[comment.id]}
                                         >
                                             <option value="positive">Positive</option>
@@ -169,7 +168,16 @@ const BatchDetails = () => {
                                         </button>
                                     </>
                                 )}
-                                {comment.is_updated && <p>(Sentiment corrected)</p>}
+                                {comment.is_updated && (
+                                    <p>
+                                        (Sentiment corrected){" "}
+                                        {comment.feedback_verified === null
+                                            ? "(Pending...)"
+                                            : comment.feedback_verified === true
+                                            ? "(Verified)"
+                                            : "model predicted correctly"}
+                                    </p>
+                                )}
                             </li>
                         ))}
                     </ul>

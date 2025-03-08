@@ -11,12 +11,6 @@ class SingleComment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_updated = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        if self.pk and self.is_updated:
-            raise ValueError("You can only update your comment once.")
-        if self.pk:
-            self.is_updated = True
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.sentiment}"
@@ -29,9 +23,9 @@ class BatchComment(models.Model):
         ('Youtube', 'YouTube'),
     ]
     SENTIMENT_CHOICES = [
-        ('positive', '+ve'),
-        ('negative', '-ve'),
-        ('neutral', 'N/A'),
+        ('positive', 'positive'),
+        ('negative', 'negative'),
+        ('neutral', 'neutral'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Links to registered user
     comment_type = models.CharField(max_length=20, choices=COMMENT_TYPE_CHOICES)  # Type of batch
@@ -52,12 +46,6 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_updated = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        if self.pk and self.is_updated:
-            raise ValueError("You can only update your comment once.")
-        if self.pk:
-            self.is_updated = True
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.batch.comment_type} - {self.sentiment}"
@@ -65,11 +53,36 @@ class Comment(models.Model):
 # New Model: Corrected Sentiment
 class CorrectedSentiment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # User who corrected the sentiment
-    batch = models.ForeignKey(BatchComment,null=True,blank=True ,on_delete=models.CASCADE) 
-    original_comment = models.TextField()  # Original comment text
+    batch_comment = models.ForeignKey(Comment, blank=True, null=True,on_delete=models.CASCADE,related_name="batch_comment")
+    single_comment = models.ForeignKey(SingleComment, blank=True, null=True, on_delete=models.CASCADE,related_name="single_comment")
+    comment = models.TextField()  # Original comment text
     predicted_sentiment = models.CharField(max_length=20)  # Sentiment predicted by the model
     corrected_sentiment = models.CharField(max_length=20)  # User-corrected sentiment
     corrected_at = models.DateTimeField(auto_now_add=True)  # Timestamp of correction
+    feedback_verified = models.BooleanField(null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        # If feedback_verified is False, revert the sentiment to original (prediction was correct)
+        if self.feedback_verified is False:
+            if self.batch_comment:
+                self.batch_comment.sentiment = self.predicted_sentiment  # Revert to predicted sentiment
+                self.batch_comment.save()
+            elif self.single_comment:
+                self.single_comment.sentiment = self.predicted_sentiment  # Revert to predicted sentiment
+                self.single_comment.save()
+        
+        # If feedback_verified is True, keep the corrected sentiment
+        elif self.feedback_verified is True:
+            if self.batch_comment:
+                self.batch_comment.sentiment = self.corrected_sentiment  # Keep corrected sentiment
+                self.batch_comment.score = 0
+                self.batch_comment.save()
+            elif self.single_comment:
+                self.single_comment.sentiment = self.corrected_sentiment  # Keep corrected sentiment
+                self.single_comment.Score = 0
+                self.single_comment.save()
 
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.user.username} corrected {self.predicted_sentiment} to {self.corrected_sentiment}"
