@@ -4,7 +4,7 @@ from rest_framework import status
 from .models import SingleComment, BatchComment, Comment
 from .serializers import SingleCommentSerializer,BatchCommentSerializer,CommentSerializer,CorrectedSentimentSerializer
 from rest_framework.permissions import IsAuthenticated
-from utils import sentiment_model,tfidf_vectorizer
+from analysis.utils import sentiment_model,tfidf_vectorizer
 from django.db.models import Count
 from sentilytics.settings import YOUTUBE_API_KEY
 
@@ -109,7 +109,8 @@ class SingleCommentAnalysis(APIView):
         print(request.user)
         corrected_data = {
             "user": request.user.id,
-            "original_comment": comment.comment,
+            "single_comment":comment.id,
+            "comment": comment.comment,
             "predicted_sentiment": comment.sentiment,
             "corrected_sentiment": corrected_sentiment
         }
@@ -117,7 +118,7 @@ class SingleCommentAnalysis(APIView):
         
         if corrected_serializer.is_valid():
             corrected_serializer.save()
-            comment.sentiment = corrected_sentiment
+            comment.is_updated =True
             comment.save()
             return Response(corrected_data, status=status.HTTP_200_OK)
 
@@ -447,20 +448,17 @@ class Batch(APIView):
             return Response({"error": "Same sentiment value as predicted"}, status=status.HTTP_400_BAD_REQUEST)
         corrected_data = {
             "user": request.user.id,
-            "original_comment": comment.comment,
+            "comment": comment.comment,
             "predicted_sentiment": comment.sentiment,
             "corrected_sentiment": corrected_sentiment,
-            "batch":batch_id
+            "batch_comment":comment.id
         }
         corrected_serializer = CorrectedSentimentSerializer(data=corrected_data)
         
         if corrected_serializer.is_valid():
             corrected_serializer.save()
-            comment.sentiment = corrected_sentiment
+            comment.is_updated = True
             comment.save()
-            sentiment_counts=batch.comments.values('sentiment').annotate(count=Count('sentiment')).order_by('-count')
-            batch.over_all_sentiment= sentiment_counts[0]['sentiment'] if sentiment_counts else "none"
-            batch.save()
             return Response(corrected_serializer.data, status=status.HTTP_200_OK)
 
         return Response(corrected_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
