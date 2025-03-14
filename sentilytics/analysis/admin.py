@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SingleComment, BatchComment, Comment, CorrectedSentiment
+from .models import BatchComment, Comment, CorrectedSentiment
 import csv
 from django.http import HttpResponse
 
@@ -19,39 +19,30 @@ def export_to_csv(modeladmin, request, queryset):
     
     return response
 
-export_to_csv.short_description = "Export Selected as CSV"
-@admin.register(SingleComment)
-class SingleCommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'comment', 'sentiment', 'Score', 'date_created', 'updated_at', 'is_updated')
-    search_fields = ('comment', 'sentiment')
-    list_filter = ('sentiment', 'is_updated', 'date_created')
-    readonly_fields = ('date_created', 'updated_at')
-    actions = [export_to_csv]
 
 @admin.register(BatchComment)
 class BatchCommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'comment_type', 'over_all_sentiment', 'date_created')
-    search_fields = ('comment_type', 'over_all_sentiment')
-    list_filter = ('comment_type', 'over_all_sentiment', 'date_created')
+    list_display = ('id', 'user', 'comment_type', 'overall_sentiment', 'date_created')
+    search_fields = ('comment_type', 'overall_sentiment')
+    list_filter = ('comment_type', 'overall_sentiment', 'date_created')
     readonly_fields = ('date_created',)
     actions = [export_to_csv]
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'batch', 'comment', 'sentiment', 'score', 'date_created', 'updated_at', 'is_updated')
-    search_fields = ('comment', 'sentiment')
-    list_filter = ('sentiment', 'is_updated', 'date_created')
+    list_display = ('id', 'batch', 'comment', 'sentiment', 'score', 'date_created', 'updated_at', 'is_updated','comment_type')
+    search_fields = ('comment', 'sentiment','comment_type')
+    list_filter = ('sentiment', 'is_updated', 'date_created','comment_type')
     readonly_fields = ('date_created', 'updated_at')
     actions = [export_to_csv]
 
 @admin.register(CorrectedSentiment)
 class CorrectedSentimentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user','comment', 'predicted_sentiment', 'corrected_sentiment', 'corrected_at', 'feedback_verified', 'batch_comment','single_comment',)
-    search_fields = ('comment', 'predicted_sentiment', 'corrected_sentiment')
+    list_display = ('id', 'user','comment_text', 'predicted_sentiment', 'corrected_sentiment', 'corrected_at', 'feedback_verified', 'comment')
+    search_fields = ('comment_text', 'predicted_sentiment', 'corrected_sentiment')
     list_filter = ('feedback_verified', 'corrected_at')
     readonly_fields = ('corrected_at',)
     list_editable=('feedback_verified',)
     list_per_page=20
     ordering=('-corrected_sentiment',)
     actions = [export_to_csv]
-
