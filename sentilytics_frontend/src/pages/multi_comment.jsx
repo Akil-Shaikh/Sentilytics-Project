@@ -75,7 +75,7 @@ const MultiComment = () => {
                 <h1>Multiple Comment Analysis</h1>
                 <form onSubmit={handleSubmit} className="multi-form">
                     <label htmlFor="file-upload" className="multi-file">Choose Files</label>
-                    <input type="file" id="file-upload" accept=".csv" name="file" onChange={handleFileChange} className="hidden-file" disabled={loading} />
+                    <input type="file" id="file-upload" accept=".csv,.xlsx,.xls" name="file" onChange={handleFileChange} className="hidden-file" disabled={loading} />
                     <input type="text" name="column" value={column} onChange={handleColumnChange} placeholder="Enter column name" className="multi-input" disabled={loading} />
                     <input type="submit" value="Submit" className="multi-submit" disabled={loading} />
                 </form>

@@ -134,11 +134,17 @@ class SingleCommentAnalysis(APIView):
 #multiple comments analysis
 class MultipleCommentsAnalysis(APIView):
     permission_classes=[IsAuthenticated]
+    def is_date(self,value):
+        try:
+            pd.to_datetime(value, errors='coerce')
+            return True
+        except:
+            return False
     def post(self,request):
         try:
             # Ensure a file is uploaded
             if "file" not in request.FILES:
-                return Response({"error": "CSV or Excel file is required."}, status=400)
+                return Response({"error": "CSV or Excel file is required."}, status=status.HTTP_400_BAD_REQUEST)
 
             file = request.FILES["file"]
             file_extension = file.name.split(".")[-1].lower()
@@ -152,23 +158,35 @@ class MultipleCommentsAnalysis(APIView):
                     df = pd.read_excel(file)
                     file_type = "Excel File"
                 else:
-                    return Response({"error": "Unsupported file format. Please upload a CSV or Excel file."}, status=400)
+                    return Response({"error": "Unsupported file format. Please upload a CSV or Excel file."}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
-                return Response({"error": f"Invalid file format: {str(e)}"}, status=400)
+                return Response({"error": f"Invalid file format: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Ensure the column is provided
             column = request.data.get("column")
             if not column:
-                return Response({"error": "Column name is required."}, status=400)
+                return Response({"error": "Column name is required."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Ensure the column exists in the DataFrame
             if column not in df.columns:
-                return Response({"error": f"File must contain a '{column}' column."}, status=400)
-
+                return Response({"error": f"File must contain a '{column}' column."}, status=status.HTTP_400_BAD_REQUEST)
+            
             # Ensure the file is not empty
             if df.empty or df[column].dropna().empty:
-                return Response({"error": "Uploaded file is empty or does not contain valid comments."}, status=400)
+                return Response({"error": "Uploaded file is empty or does not contain valid comments."}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Ensure the file has 5 or more comments
+            if df[column].shape[0] < 5:
+                return Response({"error": "Uploaded file contain less then 5 valid comments."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Ensure the column has string values instead of numbers
+            if df[column].apply(lambda x: isinstance(x, (int, float))).mean() > 0.8:
+                return Response({"error": "The selected column appears to contain mostly numbers. Please provide a valid text column."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Ensure the column has string values instead of dates
+            if df[column].apply(self.is_date).mean()> 0.8:
+                return Response({"error": "The selected column appears to contain mostly dates. Please provide a valid text column."}, status=status.HTTP_400_BAD_REQUEST)
+            
             # Preprocess text
             df["cleaned_text"] = df[column].astype(str).apply(pre.clean_text)
 
@@ -251,14 +269,14 @@ class MultipleCommentsAnalysis(APIView):
             )
 
         except KeyError as e:
-            return Response({"error": f"Missing key: {str(e)}"}, status=400)
+            return Response({"error": f"Missing key: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
         except ValueError as e:
-            return Response({"error": f"Invalid value: {str(e)}"}, status=400)
+            return Response({"error": f"Invalid value: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return Response({"error": "Requested object does not exist."}, status=404)
+            return Response({"error": "Requested object does not exist."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             traceback.print_exc()  # Logs full traceback for debugging
-            return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
+            return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
 # Youtube comments analysis
@@ -273,12 +291,12 @@ class YoutubeCommentsAnalysis(APIView):
     def post(self,request):
         video_url = request.data["vid_url"]
         if not video_url:
-            return Response({"error": "No YouTube URL provided"}, status=400)
+            return Response({"error": "No YouTube URL provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         video_id = self.url_video_extract(video_url)
 
         if not video_id:
-            return Response({"error": "Invalid YouTube URL"}, status=400)
+            return Response({"error": "Invalid YouTube URL"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
@@ -299,7 +317,7 @@ class YoutubeCommentsAnalysis(APIView):
             # Convert list to DataFrame
             df = pd.DataFrame(comments, columns=["text"])
         except Exception as e:
-            return Response({"error": f"Failed to fetch comments: {str(e)}"}, status=500)
+            return Response({"error": f"Failed to fetch comments: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         df["cleaned_text"] = df["text"].astype(str).apply(pre.clean_text)
         vec_text = tfidf_vectorizer.transform(df["cleaned_text"])
         df["sentiment"] = sentiment_model.predict(vec_text)
@@ -380,7 +398,7 @@ class Batch(APIView):
             batch = BatchComment.objects.get(id=batch_id, user=request.user)
         except BatchComment.DoesNotExist:
             return Response(
-                {"error": "Batch not found or does not belong to the user."}, status=404
+                {"error": "Batch not found or does not belong to the user."}, status=status.HTTP_404_NOT_FOUND
             )
 
         # Retrieve all related comments for the given batch
