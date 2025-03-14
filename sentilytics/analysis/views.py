@@ -1,8 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import SingleComment, BatchComment, Comment
-from .serializers import SingleCommentSerializer,BatchCommentSerializer,CommentSerializer,CorrectedSentimentSerializer
+from .models import BatchComment, Comment
+from .serializers import BatchCommentSerializer,CommentSerializer,CorrectedSentimentSerializer
 from rest_framework.permissions import IsAuthenticated
 from analysis.utils import sentiment_model,tfidf_vectorizer
 from django.db.models import Count
@@ -78,9 +78,9 @@ class SingleCommentAnalysis(APIView):
                 "comment": original_text,
                 "cleaned_text": cleaned_text,
                 "sentiment": sentiment_map[sentiment],
-                "Score": round(score[sentiment], 2)
+                "score": round(score[sentiment], 2)
             }
-            serializer = SingleCommentSerializer(data=comment_data)
+            serializer = CommentSerializer(data=comment_data)
 
             if serializer.is_valid():
                 serializer.save(user=request.user)
@@ -91,8 +91,8 @@ class SingleCommentAnalysis(APIView):
     
     def patch(self, request, pk):
         try:
-            comment = SingleComment.objects.get(pk=pk)
-        except SingleComment.DoesNotExist:
+            comment = Comment.objects.get(pk=pk,user=request.user)
+        except Comment.DoesNotExist:
             return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if comment.is_updated:
@@ -106,11 +106,11 @@ class SingleCommentAnalysis(APIView):
         
         if comment.sentiment==corrected_sentiment:
             return Response({"error": "same sentiment value as predicted"}, status=status.HTTP_400_BAD_REQUEST)
-        print(request.user)
+
         corrected_data = {
             "user": request.user.id,
-            "single_comment":comment.id,
-            "comment": comment.comment,
+            "comment":comment.id,
+            "comment_text": comment.comment,
             "predicted_sentiment": comment.sentiment,
             "corrected_sentiment": corrected_sentiment
         }
@@ -125,8 +125,8 @@ class SingleCommentAnalysis(APIView):
         return Response(corrected_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #get all single comments related to user
     def get(self,request):
-        user_comments = SingleComment.objects.filter(user=request.user)
-        serializer = SingleCommentSerializer(user_comments, many=True)
+        user_comments = Comment.objects.filter(user=request.user,comment_type='single').order_by('-date_created')
+        serializer = CommentSerializer(user_comments, many=True)
         return Response(serializer.data)
 
 
@@ -136,8 +136,8 @@ class MultipleCommentsAnalysis(APIView):
     permission_classes=[IsAuthenticated]
     def is_date(self,value):
         try:
-            pd.to_datetime(value, errors='coerce')
-            return True
+            parsed = pd.to_datetime(value, errors='coerce')  # Convert to datetime
+            return not pd.isna(parsed)
         except:
             return False
     def post(self,request):
@@ -236,17 +236,19 @@ class MultipleCommentsAnalysis(APIView):
             batch = BatchComment.objects.create(
                 user=request.user, 
                 comment_type=file_type, 
-                over_all_sentiment=sentiment_counts.idxmax()
+                overall_sentiment=sentiment_counts.idxmax()
             )
 
             # Prepare comment objects for bulk creation
             comment_objects = [
                 Comment(
+                    user=request.user,
                     batch=batch,
                     comment=row[column],
                     cleaned_text=row["cleaned_text"],
                     sentiment=row["sentiment"],
                     score=row["score_p"] if row["sentiment"] == "positive" else row["score_neg"] if row["sentiment"]=="negative" else row["score_neu"],
+                    comment_type='batch',
                 )
                 for _, row in df.iterrows()
             ]
@@ -352,15 +354,17 @@ class YoutubeCommentsAnalysis(APIView):
         wordcloud.to_image().save(buf_word, format="PNG")
         Base64_bar = base64.b64encode(buf_bar.getvalue()).decode("utf-8")
         Base64_word = base64.b64encode(buf_word.getvalue()).decode("utf-8")
-        batch = BatchComment.objects.create(user=request.user,comment_type="Youtube",over_all_sentiment=sentiment_counts.idxmax())
+        batch = BatchComment.objects.create(user=request.user,comment_type="Youtube",overall_sentiment=sentiment_counts.idxmax())
         
         comment_objects = [
             Comment(
+                user=request.user,
                 batch=batch,
                 comment=row["text"],
                 cleaned_text=row["cleaned_text"],
                 sentiment=row["sentiment"],
                 score=row["score_p"] if row["sentiment"] == "positive" else row["score_neg"] if row["sentiment"]=="negative" else row["score_neu"],
+                comment_type='batch',
             )
             for _, row in df.iterrows()
         ]
@@ -447,8 +451,9 @@ class Batch(APIView):
     
     def patch(self, request,batch_id, pk=None):
         try:
-            batch=BatchComment.objects.get(id=batch_id)
+            batch=BatchComment.objects.get(id=batch_id,user=request.user)
             comment = batch.comments.get(pk=pk)
+            
         except BatchComment.DoesNotExist:
             return Response({"error" : "Batch not found"},status=status.HTTP_404_NOT_FOUND)
         except Comment.DoesNotExist:
@@ -466,13 +471,12 @@ class Batch(APIView):
             return Response({"error": "Same sentiment value as predicted"}, status=status.HTTP_400_BAD_REQUEST)
         corrected_data = {
             "user": request.user.id,
-            "comment": comment.comment,
+            "comment":comment.id,
+            "comment_text": comment.comment,
             "predicted_sentiment": comment.sentiment,
             "corrected_sentiment": corrected_sentiment,
-            "batch_comment":comment.id
         }
         corrected_serializer = CorrectedSentimentSerializer(data=corrected_data)
-        
         if corrected_serializer.is_valid():
             corrected_serializer.save()
             comment.is_updated = True
@@ -480,3 +484,4 @@ class Batch(APIView):
             return Response(corrected_serializer.data, status=status.HTTP_200_OK)
 
         return Response(corrected_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
