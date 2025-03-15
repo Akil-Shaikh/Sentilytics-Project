@@ -14,6 +14,7 @@ const formatDate = (isoString) => {
     });
 };
 
+
 const BatchDetails = () => {
     const { batch_id } = useParams();
     const navigate = useNavigate();
@@ -24,6 +25,7 @@ const BatchDetails = () => {
     const [editMode, setEditMode] = useState(false);
     const [editedValue, setEditedValue] = useState({});
     const [loadingEdits, setLoadingEdits] = useState({});
+    const [activeTab, setActiveTab] = useState("comments");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -115,78 +117,107 @@ const BatchDetails = () => {
 
     return (
         <div className="batch-container">
-            <div className="batch-details-all">
+            <div className="batch-details">
+                <h2>Batch Details</h2>
                 <div className="batch-data">
-                    <h2>Batch Details</h2>
                     <p><strong>Batch ID:</strong> {batchData?.batch_id}</p>
                     <p><strong>Type:</strong> {batchData?.comment_type}</p>
                     <p><strong>Date Created:</strong> {formatDate(batchData?.date_created)}</p>
                 </div>
-                <div className="batch-chart-all">
-                    <h3>Sentiment Analysis Charts</h3>
-                    <div className="batch-chart">
-                        {batchData?.BarChart && <img src={batchData.BarChart} alt="Sentiment Bar Chart" />}
-                        {batchData?.wordcloud && <img src={batchData.wordcloud} alt="Word Cloud" />}
+                <div className="tab-container">
+                    <button className={`tab ${activeTab === "comments" ? "active" : ""}`} onClick={() => { setActiveTab("comments"); setFilterSentiment(""), setFilterType("") }}>
+                        Comments
+                    </button>
+                    <button className={`tab ${activeTab === "chart" ? "active" : ""}`} onClick={() => { setActiveTab("chart"); setFilterSentiment("") }}>
+                        Charts
+                    </button>
+                </div>
+            </div>
+            {activeTab === "chart" && (<div className="batch-chart">
+                <h3>Sentiment Analysis Charts</h3>
+                <div className="chart">
+                    {batchData?.BarChart && <img src={batchData.BarChart} alt="Sentiment Bar Chart" />}
+                    {batchData?.wordcloud && <img src={batchData.wordcloud} alt="Word Cloud" />}
+                </div>
+            </div>)}
+            {activeTab === "comments" && (
+                <div className="batch-comment-all">
+                    <button onClick={toggleEditMode}>{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
+                    <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
+
+                    <div className="filter-comment">
+                        <label><strong>Filter Comments:</strong></label>
+                        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                            <option value="all">All</option>
+                            <option value="positive">Positive</option>
+                            <option value="negative">Negative</option>
+                            <option value="neutral">Neutral</option>
+                        </select>
                     </div>
-                </div>
-            </div>
+                    {filteredComments.length > 0 ? (
+                        <table border="1" width="100%" cellPadding="8" className="batch-table">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Comment</th>
+                                    <th onClick={() => handleSort("sentiment", "single")}>
+                                        Sentiment
+                                    </th>
+                                    {!editMode ? <th>Score</th> : <th>Acition</th>}
+                                    {editMode && <th>Status</th>}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredComments.map((comment,index) => {
+                                    return (
+                                        <tr key={comment.id}>
+                                            <td>{index+1}</td>
+                                            <td className="comment">{comment.comment}</td>
+                                            {!editMode ? <td className={`batch-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td> : (!comment.is_updated ? (
+                                                <td>
+                                                    <select
+                                                        value={editedValue[comment.id] || comment.sentiment}
+                                                        onChange={(e) => setEditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+                                                        disabled={loadingEdits[comment.id]}
+                                                    >
+                                                        <option value="positive">Positive</option>
+                                                        <option value="negative">Negative</option>
+                                                        <option value="neutral">Neutral</option>
+                                                    </select>
+                                                </td>
 
-            <button onClick={toggleEditMode}>{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
-            <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
-
-            <div className="batch-comment-all">
-                <div className="filter-comment">
-                    <label><strong>Filter Comments:</strong></label>
-                    <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-                        <option value="all">All</option>
-                        <option value="positive">Positive</option>
-                        <option value="negative">Negative</option>
-                        <option value="neutral">Neutral</option>
-                    </select>
+                                            ) : (<td className={`batch-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
+                                            ))}
+                                            {editMode ?
+                                                (!comment.is_updated ? (
+                                                    <><td>
+                                                        <button onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
+                                                            {loadingEdits[comment.id] ? "Saving..." : "Confirm"}
+                                                        </button>
+                                                    </td>
+                                                        <td>---</td></>
+                                                ) : <>
+                                                    <td>---</td>
+                                                    <td>{comment.feedback_verified === null
+                                                        ? "Sentiment correction Pending..."
+                                                        : comment.feedback_verified === true
+                                                            ? "Sentiment Verified"
+                                                            : "model predicted correctly"}</td>
+                                                </>
+                                                )
+                                                : <td> {comment.is_updated ? "---" : comment.score}</td>
+                                            }
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p>No single comments found.</p>
+                    )}
                 </div>
-                {filteredComments.length > 0 ? (
-                    <ul className="batch-comment-list">
-                        {filteredComments.map((comment) => (
-                            <li key={comment.id} className={`batch-comment batch-${comment.sentiment}`}>
-                                <p><strong>Comment:</strong> {comment.comment}</p>
-                                <p><strong>Cleaned:</strong> {comment.cleaned_text}</p>
-                                <p><strong>Sentiment:</strong> {comment.sentiment}</p>
-                                {!editMode && !comment.is_updated && (<p><strong>Score: </strong>{comment.score}</p>)}
-                                {editMode && !comment.is_updated && (
-                                    <>
-                                        <select
-                                            value={editedValue[comment.id] || comment.sentiment}
-                                            onChange={(e) => setEditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
-                                            disabled={loadingEdits[comment.id]}
-                                        >
-                                            <option value="positive">Positive</option>
-                                            <option value="negative">Negative</option>
-                                            <option value="neutral">Neutral</option>
-                                        </select>
-                                        <button onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
-                                            {loadingEdits[comment.id] ? "Saving..." : "Confirm"}
-                                        </button>
-                                    </>
-                                )}
-                                {comment.is_updated && (
-                                    <p>
-                                        (Sentiment corrected){" "}
-                                        {comment.feedback_verified === null
-                                            ? "(Pending...)"
-                                            : comment.feedback_verified === true
-                                            ? "(Verified)"
-                                            : "model predicted correctly"}
-                                    </p>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No comments found for the selected sentiment.</p>
-                )}
-            </div>
+            )}
         </div>
     );
 };
-
 export default BatchDetails;

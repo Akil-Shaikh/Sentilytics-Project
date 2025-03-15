@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .serializers import userSerializer
+from rest_framework import status
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
@@ -15,10 +16,10 @@ def register(request):
     elif request.method == "POST":
         data = request.data
         if User.objects.filter(username=data.get("username")).exists():
-            return Response({"error": "Username already exists"}, status=400)
+            return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(email=data.get("email")).exists():
-            return Response({"error": "Email already registered"}, status=400)
+            return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(
             username=data.get("username"),

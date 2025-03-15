@@ -5,7 +5,6 @@ from .models import BatchComment, Comment
 from .serializers import BatchCommentSerializer,CommentSerializer,CorrectedSentimentSerializer
 from rest_framework.permissions import IsAuthenticated
 from analysis.utils import sentiment_model,tfidf_vectorizer
-from django.db.models import Count
 from sentilytics.settings import YOUTUBE_API_KEY
 
 from django.core.exceptions import ObjectDoesNotExist #?
