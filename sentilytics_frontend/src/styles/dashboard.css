@@ -52,9 +52,16 @@
     /* background-color: red; */
     padding: 1rem;
     font-size: 1.2rem;
-    cursor: pointer;
+    cursor: default;
 }
 
+.dashboard-table .sort-th{
+    cursor: pointer;
+}
+.dashboard-table .active-sort{
+    text-decoration: underline;
+    color: blue;
+}
 .dashboard-table td {
     /* background-color: red; */
     padding: 1rem;
@@ -96,4 +103,33 @@
     color: grey;
     text-transform: capitalize;
     font-weight: bold;
+}
+.dashboard-table .comment{
+    text-align: justify;
+}
+.tab-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.tab {
+    padding: 10px 20px;
+    border: none;
+    background-color: #e5e7eb;
+    color: #333;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+}
+
+.tab.active {
+    background-color: #F97316;
+    color: white;
+}
+
+.tab:hover {
+    background-color: #F97316;
+    color: white;
 }
