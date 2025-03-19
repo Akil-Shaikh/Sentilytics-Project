@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/batchdetails.css";
+import DownloadButton from "../components/downloadButton";
 
 const formatDate = (isoString) => {
     return new Date(isoString).toLocaleString("en-US", {
@@ -119,8 +120,8 @@ const BatchDetails = () => {
         <div className="batch-container">
             <div className="batch-details">
                 <h2>Batch Details</h2>
+                <DownloadButton batch_Id={batch_id} comment_type={batchData?.comment_type} />
                 <div className="batch-data">
-                    <p><strong>Batch ID:</strong> {batchData?.batch_id}</p>
                     <p><strong>Type:</strong> {batchData?.comment_type}</p>
                     <p><strong>Date Created:</strong> {formatDate(batchData?.date_created)}</p>
                 </div>
@@ -144,7 +145,6 @@ const BatchDetails = () => {
                 <div className="batch-comment-all">
                     <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
                     <button onClick={toggleEditMode} className="edit-mode">{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
-
                     <div className="filter-comment">
                         <label><strong>Filter Comments:</strong></label>
                         <select value={filter} onChange={(e) => setFilter(e.target.value)}>

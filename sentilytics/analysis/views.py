@@ -1,3 +1,10 @@
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+from datetime import datetime
+from openpyxl.drawing.image import Image
+from openpyxl.styles import Font
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -58,6 +65,41 @@ class Preprocessor:
 
 #instance
 pre = Preprocessor()
+
+def createVisuals(data):
+    df=pd.DataFrame(data)
+    # Sentiment Distribution Plot
+    sentiment_counts = df["sentiment"].value_counts()
+    buf_bar = BytesIO()
+    buf_word = BytesIO()
+
+    plt.figure(figsize=(6, 4),facecolor="lightblue")
+    plt.bar(
+        x=["Positive", "Negative", "Neutral"],
+        height=[
+            sentiment_counts.get("positive", 0),
+            sentiment_counts.get("negative", 0),
+            sentiment_counts.get("neutral", 0),
+            ],
+            color=["g", "r", "grey"],
+        )
+    plt.title("Sentiment Distribution")
+    plt.xlabel("Sentiment")
+    plt.ylabel("Count")
+    plt.savefig(buf_bar, format="png")
+    plt.close()
+
+    # Word Cloud Generation
+    text = " ".join(df["cleaned_text"].dropna())
+    if text.strip():  # Generate word cloud only if there is valid text
+        wordcloud = WordCloud(width=600, height=400, background_color="floralwhite").generate(text)
+        wordcloud.to_image().save(buf_word, format="PNG")
+    else:
+        buf_word = BytesIO()  # Empty image placeholder
+    
+    buf_bar.seek(0)
+    buf_word.seek(0)
+    return buf_bar,buf_word
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #single comment analysis
@@ -198,35 +240,10 @@ class MultipleCommentsAnalysis(APIView):
             df["score_neu"] = df["score_neu"].round(2)
             df["score_p"] = df["score_p"].round(2)
             df["sentiment"] = df["sentiment"].map(sentiment_map)
-
-            # Sentiment Distribution Plot
             sentiment_counts = df["sentiment"].value_counts()
-            buf_bar = BytesIO()
-            buf_word = BytesIO()
-
-            plt.figure(figsize=(6, 4),facecolor="lightblue")
-            plt.bar(
-                x=["Positive", "Negative", "Neutral"],
-                height=[
-                    sentiment_counts.get("positive", 0),
-                    sentiment_counts.get("negative", 0),
-                    sentiment_counts.get("neutral", 0),
-                ],
-                color=["g", "r", "grey"],
-            )
-            plt.title("Sentiment Distribution")
-            plt.xlabel("Sentiment")
-            plt.ylabel("Count")
-            plt.savefig(buf_bar, format="png")
-            plt.close()
-
-            # Word Cloud Generation
-            text = " ".join(df["cleaned_text"].dropna())
-            if text.strip():  # Generate word cloud only if there is valid text
-                wordcloud = WordCloud(width=600, height=400, background_color="floralwhite").generate(text)
-                wordcloud.to_image().save(buf_word, format="PNG")
-            else:
-                buf_word = BytesIO()  # Empty image placeholder
+            
+            # Sentiment Distribution Plot
+            buf_bar,buf_word=createVisuals(df)
 
             Base64_bar = base64.b64encode(buf_bar.getvalue()).decode("utf-8")
             Base64_word = base64.b64encode(buf_word.getvalue()).decode("utf-8")
@@ -329,28 +346,10 @@ class YoutubeCommentsAnalysis(APIView):
         df["score_p"] = df["score_p"].round(2)
         df["sentiment"] = df["sentiment"].map(sentiment_map)
         sentiment_counts = df["sentiment"].value_counts()
-        buf_bar = BytesIO()
-        buf_word = BytesIO()
-        plt.bar(
-                x=["Positive", "Negative", "Neutral"],
-                height=[
-                    sentiment_counts.get("positive",0),
-                    sentiment_counts.get("negative",0),
-                    sentiment_counts.get("neutral",0),
-                ],
-                color=["g", "r", "grey"],
-            )
-        plt.title("Sentiment Distribution")
-        plt.xlabel("Sentiment")
-        plt.ylabel("Count")
-        plt.savefig(buf_bar, format="png")
-
-        text = " ".join(df["cleaned_text"])
-        wordcloud = WordCloud(width=600, height=400, background_color="floralwhite").generate(
-                text
-            )
-
-        wordcloud.to_image().save(buf_word, format="PNG")
+        
+        #creating visuals
+        buf_bar,buf_word=createVisuals(df)
+        
         Base64_bar = base64.b64encode(buf_bar.getvalue()).decode("utf-8")
         Base64_word = base64.b64encode(buf_word.getvalue()).decode("utf-8")
         batch = BatchComment.objects.create(user=request.user,comment_type="Youtube",overall_sentiment=sentiment_counts.idxmax())
@@ -410,31 +409,10 @@ class Batch(APIView):
         # Serialize the comments data
         serializer = CommentSerializer(comments, many=True)
         df=pd.DataFrame(serializer.data)
-        sentiment_counts = df["sentiment"].value_counts()
-        buf_bar = BytesIO()
-        buf_word = BytesIO()
-        # plt.figure(figsize=(6, 4))
-        plt.figure(figsize=(6, 4),facecolor="lightblue")
-        plt.bar(
-                x=["Positive", "Negative", "Neutral"],
-                height=[
-                    sentiment_counts.get("positive",0),
-                    sentiment_counts.get("negative",0),
-                    sentiment_counts.get("neutral",0),
-                ],
-                color=["g", "r", "grey"],
-            )
-        plt.title("Sentiment Distribution")
-        plt.xlabel("Sentiment")
-        plt.ylabel("Count")
-        plt.savefig(buf_bar, format="png")
-        plt.close()
-        text = " ".join(df["cleaned_text"])
-        wordcloud = WordCloud(width=600, height=400, background_color="floralwhite").generate(
-                text
-            )
-
-        wordcloud.to_image().save(buf_word, format="PNG")
+        
+        #creating visuals
+        buf_bar,buf_word=createVisuals(df)
+        
         Base64_bar = base64.b64encode(buf_bar.getvalue()).decode("utf-8")
         Base64_word = base64.b64encode(buf_word.getvalue()).decode("utf-8")
         return Response(
@@ -484,3 +462,63 @@ class Batch(APIView):
 
         return Response(corrected_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+class DownloadAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, batch_id):
+        # Fetch comments for the user and batch
+        data = Comment.objects.filter(user=request.user, batch=batch_id)
+        serialized_data = CommentSerializer(data, many=True)
+
+        if not serialized_data.data:
+            return Response({"error": "No data found"}, status=404)
+
+        # Convert serialized data to DataFrame
+        df = pd.DataFrame(serialized_data.data)
+
+
+        # Extract unique `comment_type` and `date_created`
+        comment_type = df['comment_type'].iloc[0] if not df.empty else "Unknown"
+        date_created = df['date_created'].iloc[0] if not df.empty else "Unknown"
+        date_created=datetime.fromisoformat(date_created).strftime('%B %d, %Y %I:%M %p')
+        text = " ".join(df["cleaned_text"])
+        buf_bar,buf_word=createVisuals(df)
+        # Drop `comment_type` and `date_created` from the table
+        df = df[['comment', 'sentiment', 'score']]
+
+        # Create an in-memory Excel file using openpyxl
+        output = BytesIO()
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Sentiment Analysis"
+
+        # Write title
+        ws.append([f"Date: {date_created}"])
+        ws.append([])  # Empty row for spacing
+
+        # Write headers
+        ws.append(["Comment", "Sentiment", "Score"])
+        for cell in ws[ws.max_row]:  # Get the last row (header row)
+            cell.font = Font(bold=True)
+        # Write data rows
+        for _, row in df.iterrows():
+            ws.append(row.tolist())
+
+        ws_images = wb.create_sheet(title="Images")
+        
+        img1 = Image(buf_bar)
+        img2 = Image(buf_word)
+
+        ws_images.add_image(img1, "B2")
+        ws_images.add_image(img2, "L2")
+
+        # Save the workbook
+        wb.save(output)
+        output.seek(0)
+
+        # Create response with Excel file
+        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename=sentiment_analayis_{comment_type}_comments.xlsx'
+
+        return response
