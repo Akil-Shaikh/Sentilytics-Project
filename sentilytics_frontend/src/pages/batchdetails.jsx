@@ -142,8 +142,8 @@ const BatchDetails = () => {
             </div>)}
             {activeTab === "comments" && (
                 <div className="batch-comment-all">
-                    <button onClick={toggleEditMode}>{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
                     <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
+                    <button onClick={toggleEditMode} className="edit-mode">{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
 
                     <div className="filter-comment">
                         <label><strong>Filter Comments:</strong></label>

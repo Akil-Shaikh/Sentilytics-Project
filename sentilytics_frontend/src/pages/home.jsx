@@ -1,71 +1,49 @@
 import "../styles/home.css"
-import featuresinfo from "../api/featuresinfo.json"
 import Features from "../components/Features";
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import featuresData from "../api/featuresinfo.json";
+
 
 function Home() {
-    const navigate = useNavigate();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userData, setUserData] = useState(null);
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            setIsLoggedIn(true);
-            const storedUser = JSON.parse(localStorage.getItem("user"));
-            setUserData(storedUser);
-        }
-    }, []);
-    const handleLogout = () => {
-        localStorage.removeItem("token"); // Remove token
-        alert("Logged out successfully!");
-        navigate("/login")
-        window.location.reload(); // Optional: Refresh page after logout
-    };
+
 
     return (
         <>
-            <div className="home-header">
-                <nav className="navbar">
-
-                    {isLoggedIn ? (
-                        <div className="user-info">
-                            <span className="home-profile">
-                                <Link to="/dashboard">
-                                    <i class="bi bi-person-fill"></i>
-                                </Link>
-                            </span>
-                            <button className="nav-log" onClick={handleLogout}>Log out</button>
+            <div class="home-container">
+                <div class="hero-section">
+                    <div className="hero-text">
+                        <h1>Analyze comments at scale based on quality.</h1>
+                        <p>Our AI-driven algorithm automatically examines descriptive comments at scale, including sentiment and topic insights.</p>
+                    </div>
+                    <div class="image-placeholder">Image</div>
+                </div>
+                <div className="home-features">
+                    <h1 className="features-title">See how Sentilytics can help</h1>
+                    <div className="box">
+                        <div className="box-text">
+                            <p>Sentiment Analysis</p>
+                            <h1>Understand emotions in every comment</h1>
+                            <p>Our advanced tool detects positive, negative, and neutral sentiments, helping you gauge audience opinions with ease.</p>
                         </div>
-                    ) : (
-                        <>
-                            <Link className="nav-btn" to="/login">Login</Link>
-                            <Link className="nav-btn" to="/login">Register</Link>
-                        </>
-                    )}
-                </nav>
-                <h2>Analyze Comments, Get Insights</h2>
-                <p>Sentiment tracking, emotion detection, and insights into user feedback.</p>
-                <div className="header-buttons">
-                    <Link to="/use_sentilytics" className="cta-button">Use Sentilytics</Link>
-                    <a href="#try" className="cta-button">Try Features</a>
+                        <img src="/images/img1.jpg" alt="Feature 1" className="box-img" />
+                    </div>
+                    <div className="box">
+                        <div className="box-text">
+                            <p> Bar Chart Visualization</p>
+                            <h1>Clear insights through dynamic charts</h1>
+                            <p>Get a visual breakdown of sentiment analysis with easy-to-read bar charts, making data interpretation simple and effective.</p>
+                        </div>
+                        <img src="/images/img2.jpg" alt="Feature 2" className="box-img" />
+                    </div>
+                    <div className="box">
+                        <div className="box-text">
+                            <p>Word Cloud Representation</p>
+                            <h1>Spot key trends at a glance</h1>
+                            <p>Discover the most frequently used words in feedback with an interactive word cloud, highlighting important topics instantly.</p>
+                        </div>
+                        <img src="/images/img3.jpg" alt="Feature 3" className="box-img" />
+                    </div>
                 </div>
             </div>
-            <div className="home-features">
-                {featuresinfo.map((curElem) => {
-                    return (
-                        <Features key={curElem.id} curElem={curElem} />
-                    )
-                })}
-            </div>
-            <Link to="/dashboard" className="link">Dashboard</Link>
-
-            {/* <div className="analyze">
-
-                <Link to="/multi_comment" className="link">Analyze Sentiment</Link>
-                <Link to="/youtube_comment" className="link">Youtube Sentiment</Link>
-            </div> */}
-
         </>
     )
 }

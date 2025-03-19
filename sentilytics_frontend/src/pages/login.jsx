@@ -56,9 +56,6 @@ function Login() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 100 }}
             transition={{ duration: 0.5 }}>
-            <div className="login-image">
-
-            </div>
             <div className="login-card">
                 <h1 className="login-heading">Login</h1>
                 <form action="#" className="login-form" onSubmit={handleSubmit}>

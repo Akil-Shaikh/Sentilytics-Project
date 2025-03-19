@@ -1,21 +1,17 @@
-function Features(props) {
-    const { title, info, list,image } = props.curElem;
+import React from 'react'
+import "../styles/home.css"
+
+const Features = (props) => {
+    const { title, heading, info, image } = props.curElem;
     return (
-        <>
-            <div className="features-info">
-                <img src={image} alt="" />
-                <div className="info">
-                    <h2>{title}</h2>
-                    <p>{info}</p>
-                    <ul>
-                        {list && list.map((item, index) => (
-                            <li key={index}>{item}</li>
-                        )
-                        )}
-                    </ul>
-                </div>
+        <div className="box">
+            <div className="box-text">
+                <p>{title}</p>
+                <h1>{heading}</h1>
+                <p>{info}</p>
             </div>
-        </>
+            <img src={image} alt="Image" />
+        </div>
     )
 }
 
