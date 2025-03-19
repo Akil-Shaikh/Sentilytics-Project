@@ -1,0 +1,16 @@
+.pagenotfound{
+    display: flex;
+    flex-direction: column;
+    padding: 10rem;
+}
+.pagenotfound h1{
+    color: grey;
+    text-shadow: 0.2rem 0.2rem black;
+    font-size:7rem;
+}
+.pagenotfound p{
+    color: gray;
+    font-size: 2rem;
+    text-shadow: 0.1rem 0.1rem black;
+
+}

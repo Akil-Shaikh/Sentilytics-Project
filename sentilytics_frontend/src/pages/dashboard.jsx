@@ -184,7 +184,7 @@ const Dashboard = () => {
                     <h3>Your Single Comments</h3>
                     <div className="dashboard-filter">
                         <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
-                        <button onClick={toggleEditMode}>{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
+                        <button className="edit-mode" onClick={toggleEditMode}>{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
                         <label>Filter by Sentiment:</label>
                         <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)}>
                             <option value="">All</option>
@@ -193,7 +193,7 @@ const Dashboard = () => {
                             <option value="neutral">Neutral</option>
                         </select>
 
-                        <button onClick={() => handleFilter('single')} className="filter-btn">Apply Filters</button>
+                        <button onClick={() => handleFilter('single')} className="filter-btnn">Apply Filters</button>
                     </div>
                     {filteredSingleComments.length > 0 ? (
                         <table border="1" width="100%" cellPadding="8" className="dashboard-table">
@@ -201,11 +201,11 @@ const Dashboard = () => {
                                 <tr>
                                     <th>Index</th>
                                     <th>Comment</th>
-                                    <th className={`sort-th ${sortField ==="date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "single")}>
+                                    <th className={`sort-th ${sortField === "date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "single")}>
                                         Date Created {sortField === "date_created" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                                     </th>
                                     <th>Time</th>
-                                    <th className={`sort-th ${sortField ==="sentiment" && "active-sort"}`} onClick={() => handleSort("sentiment", "single")}>
+                                    <th className={`sort-th ${sortField === "sentiment" && "active-sort"}`} onClick={() => handleSort("sentiment", "single")}>
                                         Sentiment {sortField === "sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                                     </th>
                                     {!editMode ? <th>Score</th> : <th>Acition</th>}
@@ -213,11 +213,11 @@ const Dashboard = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredSingleComments.map((comment,index) => {
+                                {filteredSingleComments.map((comment, index) => {
                                     const { date, time } = formatDate(comment.date_created);
                                     return (
                                         <tr key={comment.id}>
-                                            <td>{index +1}</td>
+                                            <td>{index + 1}</td>
                                             <td className="comment">{comment.comment}</td>
                                             <td>{date}</td>
                                             <td>{time}</td>
@@ -253,7 +253,7 @@ const Dashboard = () => {
                                                             : "model predicted correctly"}</td>
                                                 </>
                                                 )
-                                                : <td> {comment.is_updated ?"---": comment.score}</td>
+                                                : <td> {comment.is_updated ? "---" : comment.score}</td>
                                             }
                                         </tr>
                                     );
@@ -270,7 +270,7 @@ const Dashboard = () => {
                 <h3>Your Batch Comments</h3>
                 <div className="dashboard-filter">
                     <label>Filter by Type:</label>
-                    <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                    <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="type-filter">
                         <option value="">All</option>
                         <option value="CSV File">CSV File</option>
                         <option value="Excel File">Excel File</option>
@@ -293,31 +293,31 @@ const Dashboard = () => {
                         <thead>
                             <tr>
                                 <th>Index</th>
-                                <th className={`sort-th ${sortField ==="comment_type" && "active-sort"}`} onClick={() => handleSort("comment_type", "batch")}>
+                                <th className={`sort-th ${sortField === "comment_type" && "active-sort"}`} onClick={() => handleSort("comment_type", "batch")}>
                                     Type {sortField === "comment_type" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                                 </th>
-                                <th className={`sort-th ${sortField ==="date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "batch")}>
+                                <th className={`sort-th ${sortField === "date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "batch")}>
                                     Date Created {sortField === "date_created" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                                 </th>
                                 <th>Time</th>
-                                <th className={`sort-th ${sortField ==="overall_sentiment" && "active-sort"}`} onClick={() => handleSort("overall_sentiment", "batch")}>
+                                <th className={`sort-th ${sortField === "overall_sentiment" && "active-sort"}`} onClick={() => handleSort("overall_sentiment", "batch")}>
                                     Overall Sentiment {sortField === "overall_sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                                 </th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredBatches.map((batch,index) => {
+                            {filteredBatches.map((batch, index) => {
                                 const { date, time } = formatDate(batch.date_created);
                                 return (
                                     <tr key={batch.id}>
-                                        <td>{index+1}</td>
+                                        <td>{index + 1}</td>
                                         <td>{batch.comment_type}</td>
                                         <td>{date}</td>
                                         <td>{time}</td>
                                         <td className={`dashboard-${batch.overall_sentiment}`}>{batch.overall_sentiment || "N/A"}</td>
                                         <td>
-                                            <button onClick={() => navigate(`/batch/${batch.id}`)} className="table-btn">
+                                            <button onClick={() => navigate(`/batch/${batch.id}`)} className="table-btnn">
                                                 View Comments
                                             </button>
                                         </td>

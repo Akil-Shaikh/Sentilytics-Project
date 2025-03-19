@@ -1,45 +1,23 @@
 [
     {
         "id": 1,
-        "title": "Excel File Export",
-        "info": "Easily download sentiment analysis data in a structured Excel format.",
-        "list": [
-            "Export detailed reports with sentiment scores for each entry",
-            "Convenient format for data storage and sharing",
-            "Supports further analysis using Excel tools like filtering and sorting",
-            "Automatically organized into relevant columns (e.g., sentiment, date, text)",
-            "Saves time with one-click export functionality",
-            "Enables integration with other systems using Excel-compatible data",
-            "Provides a clear and accessible record of insights for presentations or decision-making"
-        ],
-        "image": "/images/excel.jpg"
+        "title": "Sentiment Analysis",
+        "heading": "Understand emotions in every comment",
+        "info": "Our advanced tool detects positive, negative, and neutral sentiments, helping you gauge audience opinions with ease.",
+        "image": "/images/img1.jpg"
     },
     {
         "id": 2,
-        "title": "Graphical Representation",
-        "info": "Visualize your sentiment data with insightful and dynamic graphs.",
-        "list": [
-            "Offers bar charts, line graphs, and pie charts for clear data trends",
-            "Highlights sentiment distribution for better understanding of audience emotions",
-            "Real-time updates to reflect the latest analysis",
-            "Interactive visuals allow zooming and filtering",
-            "Simplifies complex data into easy-to-understand visuals",
-            "Aids in presenting findings to stakeholders effectively"
-        ],
-        "image": "/images/graph.jpg"
+        "title": "Bar Chart Visualization",
+        "heading": "Clear insights through dynamic charts",
+        "info": "Get a visual breakdown of sentiment analysis with easy-to-read bar charts, making data interpretation simple and effective.",
+        "image": "/images/img2.jpg"
     },
     {
         "id": 3,
-        "title": "Most Used Words Analysis",
-        "info": "Discover the key words driving sentiment on your platform.",
-        "list": [
-            "Identifies frequently used words in user feedback or text data",
-            "Highlights trends and recurring themes in communication",
-            "Helps refine communication strategies or product messaging",
-            "Saves time by automatically processing and displaying top words",
-            "Provides valuable insights for content or customer engagement improvements"
-        ],
-        "image": "/images/word.jpg"
+        "title": "Word Cloud Representation",
+        "heading": "Spot key trends at a glance",
+        "info": "Discover the most frequently used words in feedback with an interactive word cloud, highlighting important topics instantly.",
+        "image": "/images/img3.jpg"
     }
-   
 ]
