@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/multiComment.css";
+import DownloadButton from "../components/downloadButton";
 
 const MultiComment = () => {
     const navigate = useNavigate();
@@ -106,6 +107,7 @@ const MultiComment = () => {
                     ) : analyzedComments.length > 0 ? (
                         <>
                             <button onClick={() => navigate(`/batch/${batchId}`)} className="detail-btn">Get More Details</button>
+                            <DownloadButton batch_Id={batchId} comment_type={"Multiple_File"} />
                             <div className="tab-container">
                                 <button className={`tab ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")}>
                                     Comments

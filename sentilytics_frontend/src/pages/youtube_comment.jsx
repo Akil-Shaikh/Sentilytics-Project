@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import DownloadButton from '../components/downloadButton';
 import "../styles/youtubeComment.css"
 
 const YoutubeComment = () => {
@@ -87,6 +88,7 @@ const YoutubeComment = () => {
                     ) : analyzedComments.length > 0 ? (
                         <>
                             <button onClick={() => navigate(`/batch/${batchId}`)} className="detail-btn">Get More Details</button>
+                            <DownloadButton batch_Id={batchId} comment_type={"Youtube"} />
                             <div className="tab-container">
                                 <button className={`tab ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")}>
                                     Comments
