@@ -39,7 +39,7 @@ const BatchDetails = () => {
 
         const fetchBatchDetails = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/multiple/batch/${batch_id}/`, {
+                const response = await fetch(`https://sentilytics-backend.onrender.com/api/multiple/batch/${batch_id}/`, {
                     method: "GET",
                     headers: {
                         Authorization: `Token ${token}`,
@@ -100,7 +100,7 @@ const BatchDetails = () => {
         setLoadingEdits((prev) => ({ ...prev, [comment.id]: true }));
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/multiple/batch/${batch_id}/${comment.id}/`, {
+            const response = await fetch(`https://sentilytics-backend.onrender.com/api/multiple/batch/${batch_id}/${comment.id}/`, {
                 method: "PATCH",
                 headers: {
                     Authorization: `Token ${token}`,
@@ -112,7 +112,7 @@ const BatchDetails = () => {
             if (response.ok) {
                 setBatchData((prevData) => {
                     const updatedComments = prevData.comments.map((c) =>
-                        c.id === comment.id ? { ...c, is_updated: true } : c
+                        c.id === comment.id ? { ...c, corrected_sentiment: newSentiment,is_updated: true } : c
                     );
                     return { ...prevData, comments: updatedComments };
                 });

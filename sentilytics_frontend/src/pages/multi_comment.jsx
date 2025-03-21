@@ -59,7 +59,7 @@ const MultiComment = () => {
 
         try {
             setLoading(true);
-            const response = await fetch("http://127.0.0.1:8000/api/analyze/multiple/", {
+            const response = await fetch("https://sentilytics-backend.onrender.com/api/analyze/multiple/", {
                 method: "POST",
                 headers: token ? { Authorization: `Token ${token}` } : {},
                 body: formData,

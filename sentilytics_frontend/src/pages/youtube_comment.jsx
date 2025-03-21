@@ -42,7 +42,7 @@ const YoutubeComment = () => {
 
         try {
             setLoading(true);
-            const response = await fetch("http://127.0.0.1:8000/api/analyze/multipleYoutube/", {
+            const response = await fetch("https://sentilytics-backend.onrender.com/api/analyze/multipleYoutube/", {
                 method: "POST",
                 headers: token ? { Authorization: `Token ${token}` } : {},
                 body: formData,

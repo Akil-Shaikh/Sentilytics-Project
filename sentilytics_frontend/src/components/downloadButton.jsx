@@ -5,7 +5,7 @@ const DownloadButton = ({batch_Id,comment_type}) => {
     const handleDownload = async () => {
         setIsDownloading(true)
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/download/${batch_Id}/`, {
+            const response = await fetch(`https://sentilytics-backend.onrender.com/api/download/${batch_Id}/`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Token ${localStorage.getItem("token")}`, // Include token if required

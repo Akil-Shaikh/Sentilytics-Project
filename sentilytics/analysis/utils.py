@@ -42,13 +42,12 @@ class Preprocessor:
         for word in tokens:
             if word in negation_words:
                 negate = True
-            elif negate:
-                cleaned_tokens.append(
-                    "not_" + self.lemmatizer.lemmatize(word)
-                )  # Attach "not_" to next word
-                negate = False
             elif word not in self.stop_words:
-                cleaned_tokens.append(self.lemmatizer.lemmatize(word))
+                if negate:
+                    cleaned_tokens.append("not_" + self.lemmatizer.lemmatize(word))
+                    negate=False
+                else:
+                    cleaned_tokens.append(self.lemmatizer.lemmatize(word))
 
         return " ".join(cleaned_tokens)
 
