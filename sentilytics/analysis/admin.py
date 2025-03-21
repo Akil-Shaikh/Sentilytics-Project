@@ -30,11 +30,13 @@ class BatchCommentAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'batch', 'comment', 'sentiment', 'score', 'date_created', 'updated_at', 'is_updated','comment_type')
+    list_display = ('id', 'batch_id', 'comment', 'sentiment', 'score', 'date_created', 'updated_at', 'is_updated','comment_type')
     search_fields = ('comment', 'sentiment','comment_type')
     list_filter = ('sentiment', 'is_updated', 'date_created','comment_type')
     readonly_fields = ('date_created', 'updated_at')
     actions = [export_to_csv]
+    def batch_id(self, obj):
+        return f'B-{obj.batch.id}' if obj.batch else None
 
 @admin.register(CorrectedSentiment)
 class CorrectedSentimentAdmin(admin.ModelAdmin):
