@@ -35,7 +35,7 @@ const Dashboard = () => {
         }
         const fetchBatches = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/api/multiple/batch/", {
+                const response = await fetch("https://sentilytics-backend.onrender.com/api/multiple/batch/", {
                     method: "GET",
                     headers: {
                         Authorization: `Token ${token}`,
@@ -57,7 +57,7 @@ const Dashboard = () => {
 
         const fetchSingleComments = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/api/single/", {
+                const response = await fetch("https://sentilytics-backend.onrender.com/api/single/", {
                     method: "GET",
                     headers: {
                         Authorization: `Token ${token}`,
@@ -91,7 +91,7 @@ const Dashboard = () => {
         setLoadingEdits((prev) => ({ ...prev, [comment.id]: true }));
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/single/${comment.id}/`, {
+            const response = await fetch(`https://sentilytics-backend.onrender.com/api/single/${comment.id}/`, {
                 method: "PATCH",
                 headers: {
                     Authorization: `Token ${token}`,

@@ -19,7 +19,7 @@ function SingleComment() {
 
         try {
             setLoading(true);
-            const response = await fetch("http://127.0.0.1:8000/api/single/", {
+            const response = await fetch("https://sentilytics-backend.onrender.com/api/single/", {
                 method: "POST",
                 headers: token ? { Authorization: `Token ${token}` } : {},
                 body: formData,
