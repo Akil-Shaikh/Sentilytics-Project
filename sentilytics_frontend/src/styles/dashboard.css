@@ -46,7 +46,6 @@
 }
 
 .dashboard-table th {
-    /* background-color: red; */
     padding: 1rem;
     font-size: 1.2rem;
     border: 2px solid black;
@@ -62,31 +61,13 @@
 }
 
 .dashboard-table td {
-    /* background-color: red; */
     padding: 1.5rem;
     text-align: center;
     border: 2px solid black;
     font-size: 1rem;
 }
 
-.table-btn {
-    padding: 10px;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    background-color: #F97316;
-    cursor: pointer;
-    font-size: 14px;
-    color: #FFF7ED;
-    transition: all 0.3s ease-in-out;
-    font-family: "sub-heading";
-}
 
-.table-btn:hover {
-    background-color: #FFF7ED;
-    color: #F97316;
-    border: 2px solid #F97316;
-    transform: scale(1.1);
-}
 
 .dashboard-positive {
     color: green;

@@ -12,6 +12,8 @@ import About from "./pages/about";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import PageNotFound from "./pages/pagenotfound";
+import Homeopt from "./pages/homeopt";
+import SingleComment from "./pages/single_comment";
 function App() {
   return (
     <Router>
@@ -30,7 +32,8 @@ function AppContent() {
       {showNavbar && <Navbar />}
       <div className="main-content">
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* <Route path="/" element={<Home />} /> */}
+          <Route path="/" element={<Homeopt/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/multi_comment" element={<MultiComment />} />
@@ -38,8 +41,9 @@ function AppContent() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/batch/:batch_id" element={<BatchDetails />} />
           <Route path="/youtube_comment" element={<YoutubeComment />} />
+          <Route path="/single_comment" element={<SingleComment />} />
           <Route path="/about" element={<About />} />
-          <Route path="*" element={<PageNotFound />} />
+          <Route path="*" element={<PageNotFound/>} />
         </Routes>
       </div>
       {/* {showFooter && <Footer />} */}

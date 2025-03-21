@@ -1,23 +1,24 @@
 [
     {
-        "id": 1,
-        "title": "Sentiment Analysis",
-        "heading": "Understand emotions in every comment",
-        "info": "Our advanced tool detects positive, negative, and neutral sentiments, helping you gauge audience opinions with ease.",
-        "image": "/images/img1.jpg"
+      "id": 1,
+      "title": "Sentiment Analysis",
+      "subtitle": "Understand emotions in every comment",
+      "description": "Our advanced tool detects positive, negative, and neutral sentiments, helping you gauge audience opinions with ease.",
+      "image": "/images/img1.jpg"
     },
     {
-        "id": 2,
-        "title": "Bar Chart Visualization",
-        "heading": "Clear insights through dynamic charts",
-        "info": "Get a visual breakdown of sentiment analysis with easy-to-read bar charts, making data interpretation simple and effective.",
-        "image": "/images/img2.jpg"
+      "id": 2,
+      "title": "Bar Chart Visualization",
+      "subtitle": "Clear insights through dynamic charts",
+      "description": "Get a visual breakdown of sentiment analysis with easy-to-read bar charts, making data interpretation simple and effective.",
+      "image": "/images/img2.jpg"
     },
     {
-        "id": 3,
-        "title": "Word Cloud Representation",
-        "heading": "Spot key trends at a glance",
-        "info": "Discover the most frequently used words in feedback with an interactive word cloud, highlighting important topics instantly.",
-        "image": "/images/img3.jpg"
+      "id": 3,
+      "title": "Word Cloud Representation",
+      "subtitle": "Spot key trends at a glance",
+      "description": "Discover the most frequently used words in feedback with an interactive word cloud, highlighting important topics instantly.",
+      "image": "/images/word.jpg"
     }
-]
+  ]
+  

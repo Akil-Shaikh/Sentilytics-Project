@@ -103,7 +103,12 @@ const Dashboard = () => {
             if (response.ok) {
                 setSingleComments((prevData) =>
                     prevData.map((c) =>
-                        c.id === comment.id ? { ...c, sentiment: newSentiment, is_updated: true } : c
+                        c.id === comment.id ? { ...c, corrected_sentiment: newSentiment, is_updated: true } : c
+                    )
+                );
+                setFilteredSingleComments((prevData) =>
+                    prevData.map((c) =>
+                        c.id === comment.id ? { ...c, corrected_sentiment: newSentiment, is_updated: true } : c
                     )
                 );
                 setEditedValue((prev) => ({ ...prev, [comment.id]: "" })); // Clear the input after editing
@@ -208,7 +213,7 @@ const Dashboard = () => {
                                     <th className={`sort-th ${sortField === "sentiment" && "active-sort"}`} onClick={() => handleSort("sentiment", "single")}>
                                         Sentiment {sortField === "sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                                     </th>
-                                    {!editMode ? <th>Score</th> : <th>Acition</th>}
+                                    {!editMode ? <th>Score</th> : <th>Action</th>}
                                     {editMode && <th>Status</th>}
                                 </tr>
                             </thead>
@@ -239,13 +244,20 @@ const Dashboard = () => {
                                             {editMode ?
                                                 (!comment.is_updated ? (
                                                     <><td>
-                                                        <button onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
+                                                        <button 
+                                                        className="confirm-btn"
+                                                        onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
                                                             {loadingEdits[comment.id] ? "Saving..." : "Confirm"}
                                                         </button>
                                                     </td>
                                                         <td>---</td></>
                                                 ) : <>
-                                                    <td>---</td>
+                                                    <td>{comment.feedback_verified === null
+                                                        ? `Suggestion : ${comment.corrected_sentiment}`
+                                                        :comment.feedback_verified === true
+                                                        ? `Prediction Error : ${comment.predicted_sentiment}`
+                                                        :`Suggested : ${comment.corrected_sentiment}`}</td>
+
                                                     <td>{comment.feedback_verified === null
                                                         ? "Sentiment correction Pending..."
                                                         : comment.feedback_verified === true
@@ -253,7 +265,7 @@ const Dashboard = () => {
                                                             : "model predicted correctly"}</td>
                                                 </>
                                                 )
-                                                : <td> {comment.is_updated ? "---" : comment.score}</td>
+                                                : <td>{comment?.feedback_verified === true ? "---" : comment.score}</td>
                                             }
                                         </tr>
                                     );

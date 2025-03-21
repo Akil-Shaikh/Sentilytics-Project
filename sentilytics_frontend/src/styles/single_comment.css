@@ -1,0 +1,84 @@
+.single-comment {
+    /* background-color: red; */
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 5rem;
+}
+.single-comment h1{
+    font-family: "heading";
+    font-size: 4rem;
+}
+.single-input {
+    width: 20rem;
+    height: 2.5rem;
+    padding: 1.5rem 1rem;
+    border: 2px solid #000;
+    border-radius: 0.5rem;
+    font-family: "sub-heading";
+    transition: 0.3s ease-in;
+    color: #000;
+    font-size: 1rem;
+}
+
+
+
+
+.single-input::placeholder {
+    color: #000;
+    opacity: 0.5;
+}
+
+.single-input:hover {
+    background-color: #fff;
+}
+
+.single-input:focus {
+    border: 2px solid #fff;
+}
+
+.single-submit {
+    width: 15rem;
+    padding: 12px;
+    border: 2px solid #000;
+    border-radius: 8px;
+    /* background-color: #f5f5dc; */
+    cursor: pointer;
+    font-size: 16px;
+    color: #000;
+    transition: all 0.3s ease-in-out;
+    font-family: "sub-heading";
+}
+
+.single-submit:hover {
+    background-color: #fff;
+}
+
+.single-submit:active {
+    background-color: #f5f5dc;
+    border: 2px solid #fff;
+    transform: scale(0.8);
+}
+
+
+.single-form {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+    /* background-color: rgb(62, 3, 3); */
+}
+.analysis-result h2{
+    font-family: "heading";
+    text-transform: capitalize;
+    font-size: 2rem;
+}
+.single-positive{
+    color: green;
+}
+.single-negative{
+    color: red;
+}
+.single-postive{
+    color: grey;
+}
