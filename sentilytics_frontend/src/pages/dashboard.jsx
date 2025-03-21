@@ -13,6 +13,7 @@ const formatDate = (isoString) => {
 const Dashboard = () => {
     const navigate = useNavigate();
     const [singleComments, setSingleComments] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [batches, setBatches] = useState([]);
     const [filteredBatches, setFilteredBatches] = useState([]);
     const [filteredSingleComments, setFilteredSingleComments] = useState([]);
@@ -26,13 +27,12 @@ const Dashboard = () => {
     const [loadingEdits, setLoadingEdits] = useState({});
 
     useEffect(() => {
+        setLoading(true)
         const token = localStorage.getItem("token");
-
         if (!token) {
             navigate("/login");
             return;
         }
-
         const fetchBatches = async () => {
             try {
                 const response = await fetch("http://127.0.0.1:8000/api/multiple/batch/", {
@@ -77,9 +77,9 @@ const Dashboard = () => {
             }
         };
 
-        fetchBatches();
-        fetchSingleComments();
-        // handleSort(sortField)
+        Promise.all([fetchBatches(), fetchSingleComments()])
+            .then(() => setLoading(false))
+            .catch(() => setLoading(false));
     }, [navigate]);
 
     const handleSubmitEdit = async (comment) => {
@@ -200,81 +200,91 @@ const Dashboard = () => {
 
                         <button onClick={() => handleFilter('single')} className="filter-btnn">Apply Filters</button>
                     </div>
-                    {filteredSingleComments.length > 0 ? (
-                        <table border="1" width="100%" cellPadding="8" className="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Index</th>
-                                    <th>Comment</th>
-                                    <th className={`sort-th ${sortField === "date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "single")}>
-                                        Date Created {sortField === "date_created" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-                                    </th>
-                                    <th>Time</th>
-                                    <th className={`sort-th ${sortField === "sentiment" && "active-sort"}`} onClick={() => handleSort("sentiment", "single")}>
-                                        Sentiment {sortField === "sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-                                    </th>
-                                    {!editMode ? <th>Score</th> : <th>Action</th>}
-                                    {editMode && <th>Status</th>}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredSingleComments.map((comment, index) => {
-                                    const { date, time } = formatDate(comment.date_created);
-                                    return (
-                                        <tr key={comment.id}>
-                                            <td>{index + 1}</td>
-                                            <td className="comment">{comment.comment}</td>
-                                            <td>{date}</td>
-                                            <td>{time}</td>
-                                            {!editMode ? <td className={`dashboard-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td> : (!comment.is_updated ? (
-                                                <td>
-                                                    <select
-                                                        value={editedValue[comment.id] || comment.sentiment}
-                                                        onChange={(e) => setEditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
-                                                        disabled={loadingEdits[comment.id]}
-                                                    >
-                                                        <option value="positive">Positive</option>
-                                                        <option value="negative">Negative</option>
-                                                        <option value="neutral">Neutral</option>
-                                                    </select>
-                                                </td>
-
-                                            ) : (<td className={`dashboard-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
-                                            ))}
-                                            {editMode ?
-                                                (!comment.is_updated ? (
-                                                    <><td>
-                                                        <button 
-                                                        className="confirm-btn"
-                                                        onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
-                                                            {loadingEdits[comment.id] ? "Saving..." : "Confirm"}
-                                                        </button>
+                    {loading ? (
+                        <div class="text-center">
+                            <div role="status">
+                                <svg aria-hidden="true" class="inline w-10 h-10 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+                                </svg>
+                                <span class="sr-only">Loading...</span>
+                            </div></div>
+                    ) :
+                        filteredSingleComments.length > 0 ? (
+                            <table border="1" width="100%" cellPadding="8" className="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Index</th>
+                                        <th>Comment</th>
+                                        <th className={`sort-th ${sortField === "date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "single")}>
+                                            Date Created {sortField === "date_created" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+                                        </th>
+                                        <th>Time</th>
+                                        <th className={`sort-th ${sortField === "sentiment" && "active-sort"}`} onClick={() => handleSort("sentiment", "single")}>
+                                            Sentiment {sortField === "sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+                                        </th>
+                                        {!editMode ? <th>Score</th> : <th>Action</th>}
+                                        {editMode && <th>Status</th>}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredSingleComments.map((comment, index) => {
+                                        const { date, time } = formatDate(comment.date_created);
+                                        return (
+                                            <tr key={comment.id}>
+                                                <td>{index + 1}</td>
+                                                <td className="comment">{comment.comment}</td>
+                                                <td>{date}</td>
+                                                <td>{time}</td>
+                                                {!editMode ? <td className={`dashboard-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td> : (!comment.is_updated ? (
+                                                    <td>
+                                                        <select
+                                                            value={editedValue[comment.id] || comment.sentiment}
+                                                            onChange={(e) => setEditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+                                                            disabled={loadingEdits[comment.id]}
+                                                        >
+                                                            <option value="positive">Positive</option>
+                                                            <option value="negative">Negative</option>
+                                                            <option value="neutral">Neutral</option>
+                                                        </select>
                                                     </td>
-                                                        <td>---</td></>
-                                                ) : <>
-                                                    <td>{comment.feedback_verified === null
-                                                        ? `Suggestion : ${comment.corrected_sentiment}`
-                                                        :comment.feedback_verified === true
-                                                        ? `Prediction Error : ${comment.predicted_sentiment}`
-                                                        :`Suggested : ${comment.corrected_sentiment}`}</td>
 
-                                                    <td>{comment.feedback_verified === null
-                                                        ? "Sentiment correction Pending..."
-                                                        : comment.feedback_verified === true
-                                                            ? "Sentiment Verified"
-                                                            : "model predicted correctly"}</td>
-                                                </>
-                                                )
-                                                : <td>{comment?.feedback_verified === true ? "---" : comment.score}</td>
-                                            }
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p>No single comments found.</p>
-                    )}
+                                                ) : (<td className={`dashboard-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
+                                                ))}
+                                                {editMode ?
+                                                    (!comment.is_updated ? (
+                                                        <><td>
+                                                            <button
+                                                                className="confirm-btn"
+                                                                onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
+                                                                {loadingEdits[comment.id] ? "Saving..." : "Confirm"}
+                                                            </button>
+                                                        </td>
+                                                            <td>---</td></>
+                                                    ) : <>
+                                                        <td>{comment.feedback_verified === null
+                                                            ? `Suggestion : ${comment.corrected_sentiment}`
+                                                            : comment.feedback_verified === true
+                                                                ? `Prediction Error : ${comment.predicted_sentiment}`
+                                                                : `Suggested : ${comment.corrected_sentiment}`}</td>
+
+                                                        <td>{comment.feedback_verified === null
+                                                            ? "Sentiment correction Pending..."
+                                                            : comment.feedback_verified === true
+                                                                ? "Sentiment Verified"
+                                                                : "model predicted correctly"}</td>
+                                                    </>
+                                                    )
+                                                    : <td>{comment?.feedback_verified === true ? "---" : comment.score}</td>
+                                                }
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <p>No single comments found.</p>
+                        )}
                 </div>
             )}
 
@@ -300,47 +310,55 @@ const Dashboard = () => {
                     <button onClick={() => handleFilter('batch')} className="filter-btn">Apply Filters</button>
                 </div>
 
-                {filteredBatches.length > 0 ? (
-                    <table border="1" width="100%" cellPadding="8" className="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Index</th>
-                                <th className={`sort-th ${sortField === "comment_type" && "active-sort"}`} onClick={() => handleSort("comment_type", "batch")}>
-                                    Type {sortField === "comment_type" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-                                </th>
-                                <th className={`sort-th ${sortField === "date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "batch")}>
-                                    Date Created {sortField === "date_created" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-                                </th>
-                                <th>Time</th>
-                                <th className={`sort-th ${sortField === "overall_sentiment" && "active-sort"}`} onClick={() => handleSort("overall_sentiment", "batch")}>
-                                    Overall Sentiment {sortField === "overall_sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-                                </th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredBatches.map((batch, index) => {
-                                const { date, time } = formatDate(batch.date_created);
-                                return (
-                                    <tr key={batch.id}>
-                                        <td>{index + 1}</td>
-                                        <td>{batch.comment_type}</td>
-                                        <td>{date}</td>
-                                        <td>{time}</td>
-                                        <td className={`dashboard-${batch.overall_sentiment}`}>{batch.overall_sentiment || "N/A"}</td>
-                                        <td>
-                                            <button onClick={() => navigate(`/batch/${batch.id}`)} className="table-btnn">
-                                                View Comments
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p>No batch comments found.</p>
-                )}
+                {loading ? (<div class="text-center">
+                    <div role="status">
+                        <svg aria-hidden="true" class="inline w-10 h-10 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+                        </svg>
+                        <span class="sr-only">Loading...</span>
+                    </div></div>) :
+                    (filteredBatches.length > 0 ? (
+                        <table border="1" width="100%" cellPadding="8" className="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th className={`sort-th ${sortField === "comment_type" && "active-sort"}`} onClick={() => handleSort("comment_type", "batch")}>
+                                        Type {sortField === "comment_type" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+                                    </th>
+                                    <th className={`sort-th ${sortField === "date_created" && "active-sort"}`} onClick={() => handleSort("date_created", "batch")}>
+                                        Date Created {sortField === "date_created" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+                                    </th>
+                                    <th>Time</th>
+                                    <th className={`sort-th ${sortField === "overall_sentiment" && "active-sort"}`} onClick={() => handleSort("overall_sentiment", "batch")}>
+                                        Overall Sentiment {sortField === "overall_sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+                                    </th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredBatches.map((batch, index) => {
+                                    const { date, time } = formatDate(batch.date_created);
+                                    return (
+                                        <tr key={batch.id}>
+                                            <td>{index + 1}</td>
+                                            <td>{batch.comment_type}</td>
+                                            <td>{date}</td>
+                                            <td>{time}</td>
+                                            <td className={`dashboard-${batch.overall_sentiment}`}>{batch.overall_sentiment || "N/A"}</td>
+                                            <td>
+                                                <button onClick={() => navigate(`/batch/${batch.id}`)} className="table-btnn">
+                                                    View Comments
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p>No batch comments found.</p>
+                    ))}
             </div>)}
 
         </div>

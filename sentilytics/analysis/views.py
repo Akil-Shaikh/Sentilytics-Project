@@ -1,137 +1,67 @@
 from django.http import HttpResponse
-from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
-from datetime import datetime
-from openpyxl.drawing.image import Image
-from openpyxl.styles import Font
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import BatchComment, Comment
-from .serializers import BatchCommentSerializer,CommentSerializer,CorrectedSentimentSerializer
 from rest_framework.permissions import IsAuthenticated
-from analysis.utils import sentiment_model,tfidf_vectorizer
-from sentilytics.settings import YOUTUBE_API_KEY
-
+from analysis.utils import sentiment_model,tfidf_vectorizer,pre,createVisuals
 from django.core.exceptions import ObjectDoesNotExist #?
 import traceback
+
+from .models import BatchComment, Comment
+from .serializers import BatchCommentSerializer,CommentSerializer,CorrectedSentimentSerializer
+from sentilytics.settings import YOUTUBE_API_KEY
 
 import pandas as pd
 import re
 from googleapiclient.discovery import build
-
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
 from io import BytesIO
 import base64
+from openpyxl import Workbook
+from datetime import datetime
+from openpyxl.drawing.image import Image
+from openpyxl.styles import Font
 
-import nltk
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-nltk.download("stopwords")
-nltk.download("wordnet")
-nltk.download('punkt_tab')
-
-#cleaning class
-class Preprocessor:
-    def __init__(self):
-        self.stop_words = set(stopwords.words("english"))
-        self.lemmatizer = WordNetLemmatizer()
-        self.regex_pattern = re.compile(r"http\S+|www\S+|@\w+|#\w+|[^\w\s]|\d+")
-
-    def clean_text(self, text):
-        text = text.lower()
-        text = self.regex_pattern.sub("", text)
-        tokens = word_tokenize(text)
-        cleaned_tokens = []
-        negate = False
-        negation_words = {"not", "no", "never", "n't"}
-        for word in tokens:
-            if word in negation_words:
-                negate = True
-            elif negate:
-                cleaned_tokens.append(
-                    "not_" + self.lemmatizer.lemmatize(word)
-                )  # Attach "not_" to next word
-                negate = False
-            elif word not in self.stop_words:
-                cleaned_tokens.append(self.lemmatizer.lemmatize(word))
-
-        return " ".join(cleaned_tokens)
-
-#instance
-pre = Preprocessor()
-
-def createVisuals(data):
-    df=pd.DataFrame(data)
-    # Sentiment Distribution Plot
-    sentiment_counts = df["sentiment"].value_counts()
-    buf_bar = BytesIO()
-    buf_word = BytesIO()
-
-    plt.figure(figsize=(6, 4),facecolor="lightblue")
-    plt.bar(
-        x=["Positive", "Negative", "Neutral"],
-        height=[
-            sentiment_counts.get("positive", 0),
-            sentiment_counts.get("negative", 0),
-            sentiment_counts.get("neutral", 0),
-            ],
-            color=["g", "r", "grey"],
-        )
-    plt.title("Sentiment Distribution")
-    plt.xlabel("Sentiment")
-    plt.ylabel("Count")
-    plt.savefig(buf_bar, format="png")
-    plt.close()
-
-    # Word Cloud Generation
-    text = " ".join(df["cleaned_text"].dropna())
-    if text.strip():  # Generate word cloud only if there is valid text
-        wordcloud = WordCloud(width=600, height=400, background_color="floralwhite").generate(text)
-        wordcloud.to_image().save(buf_word, format="PNG")
-    else:
-        buf_word = BytesIO()  # Empty image placeholder
-    
-    buf_bar.seek(0)
-    buf_word.seek(0)
-    return buf_bar,buf_word
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #single comment analysis
 class SingleCommentAnalysis(APIView):
-    permission_classes=[IsAuthenticated]
     def post(self,request):
         try:
             data = request.data
+            if "text" not in data:
+                return Response("Text to analyze is not provided",status=status.HTTP_400_BAD_REQUEST)
             original_text = data["text"]
+            if not original_text.strip():
+                return Response("Text field is empty",status=status.HTTP_400_BAD_REQUEST)
             cleaned_text = pre.clean_text(original_text)
             vec_text = tfidf_vectorizer.transform([cleaned_text])
             sentiment = sentiment_model.predict(vec_text)[0]
             score = sentiment_model.predict_proba(vec_text)[0]
+            score = round(score[sentiment], 2)
             sentiment_map = {0:"negative",1:"neutral", 2:"positive"}
+            sentiment=sentiment_map[sentiment]
+            if not request.user.is_authenticated:
+                return Response({"sentiment":sentiment,"score":score,"message": "Anonymous users cannot store data."}, status=status.HTTP_202_ACCEPTED)
             comment_data = {
                 "user": request.user.id,
                 "comment": original_text,
                 "cleaned_text": cleaned_text,
-                "sentiment": sentiment_map[sentiment],
-                "score": round(score[sentiment], 2)
+                "sentiment":sentiment,
+                "score": score
             }
             serializer = CommentSerializer(data=comment_data)
 
             if serializer.is_valid():
                 serializer.save(user=request.user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response({"sentiment":serializer.data['sentiment'],"score":serializer.data['score']}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response("Error generating analysis",status=status.HTTP_400_BAD_REQUEST)
     
     def patch(self, request, pk):
         try:
+            if not request.user.is_authenticated:
+                return Response({"message": "Anonymous users cannot access."}, status=status.HTTP_403_FORBIDDEN)
             comment = Comment.objects.get(pk=pk,user=request.user)
         except Comment.DoesNotExist:
             return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -164,8 +94,11 @@ class SingleCommentAnalysis(APIView):
             return Response(corrected_data, status=status.HTTP_200_OK)
 
         return Response(corrected_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 #get all single comments related to user
     def get(self,request):
+        if not request.user.is_authenticated:
+                return Response({"message": "Anonymous users cannot store data."}, status=status.HTTP_403_FORBIDDEN)
         user_comments = Comment.objects.filter(user=request.user,comment_type='single').order_by('-date_created')
         serializer = CommentSerializer(user_comments, many=True)
         return Response(serializer.data)
@@ -243,10 +176,10 @@ class MultipleCommentsAnalysis(APIView):
             sentiment_counts = df["sentiment"].value_counts()
             
             # Sentiment Distribution Plot
-            buf_bar,buf_word=createVisuals(df)
+            buff_bar,buff_word=createVisuals(df)
 
-            Base64_bar = base64.b64encode(buf_bar.getvalue()).decode("utf-8")
-            Base64_word = base64.b64encode(buf_word.getvalue()).decode("utf-8")
+            Base64_bar = base64.b64encode(buff_bar.getvalue()).decode("utf-8")
+            Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
 
             # Save Batch Analysis
             batch = BatchComment.objects.create(
@@ -348,10 +281,10 @@ class YoutubeCommentsAnalysis(APIView):
         sentiment_counts = df["sentiment"].value_counts()
         
         #creating visuals
-        buf_bar,buf_word=createVisuals(df)
+        buff_bar,buff_word=createVisuals(df)
         
-        Base64_bar = base64.b64encode(buf_bar.getvalue()).decode("utf-8")
-        Base64_word = base64.b64encode(buf_word.getvalue()).decode("utf-8")
+        Base64_bar = base64.b64encode(buff_bar.getvalue()).decode("utf-8")
+        Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
         batch = BatchComment.objects.create(user=request.user,comment_type="Youtube",overall_sentiment=sentiment_counts.idxmax())
         
         comment_objects = [
@@ -409,12 +342,11 @@ class Batch(APIView):
         # Serialize the comments data
         serializer = CommentSerializer(comments, many=True)
         df=pd.DataFrame(serializer.data)
-        
         #creating visuals
-        buf_bar,buf_word=createVisuals(df)
+        buff_bar,buff_word=createVisuals(df)
         
-        Base64_bar = base64.b64encode(buf_bar.getvalue()).decode("utf-8")
-        Base64_word = base64.b64encode(buf_word.getvalue()).decode("utf-8")
+        Base64_bar = base64.b64encode(buff_bar.getvalue()).decode("utf-8")
+        Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
         return Response(
             {
                 "batch_id": batch.id,
@@ -477,14 +409,12 @@ class DownloadAPIView(APIView):
         # Convert serialized data to DataFrame
         df = pd.DataFrame(serialized_data.data)
 
-
-        # Extract unique `comment_type` and `date_created`
-        comment_type = df['comment_type'].iloc[0] if not df.empty else "Unknown"
         date_created = df['date_created'].iloc[0] if not df.empty else "Unknown"
         date_created=datetime.fromisoformat(date_created).strftime('%B %d, %Y %I:%M %p')
-        text = " ".join(df["cleaned_text"])
-        buf_bar,buf_word=createVisuals(df)
-        # Drop `comment_type` and `date_created` from the table
+        
+        buff_bar,buff_word=createVisuals(df)
+        
+        # Drop comment_type and date_created from the table
         df = df[['comment', 'sentiment', 'score']]
 
         # Create an in-memory Excel file using openpyxl
@@ -495,7 +425,7 @@ class DownloadAPIView(APIView):
 
         # Write title
         ws.append([f"Date: {date_created}"])
-        ws.append([])  # Empty row for spacing
+        ws.append([])
 
         # Write headers
         ws.append(["Comment", "Sentiment", "Score"])
@@ -507,8 +437,8 @@ class DownloadAPIView(APIView):
 
         ws_images = wb.create_sheet(title="Images")
         
-        img1 = Image(buf_bar)
-        img2 = Image(buf_word)
+        img1 = Image(buff_bar)
+        img2 = Image(buff_word)
 
         ws_images.add_image(img1, "B2")
         ws_images.add_image(img2, "L2")
@@ -519,6 +449,6 @@ class DownloadAPIView(APIView):
 
         # Create response with Excel file
         response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = f'attachment; filename=sentiment_analayis_{comment_type}_comments.xlsx'
+        response['Content-Disposition'] = f'attachment; filename=sentiment_analayis_comments.xlsx'
 
         return response
