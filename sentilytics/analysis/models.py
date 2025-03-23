@@ -14,6 +14,7 @@ class BatchComment(models.Model):
         ('neutral', 'neutral'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Links to registered user
+    batchname=models.CharField(max_length=30,blank=False,null=False)
     comment_type = models.CharField(max_length=20, choices=COMMENT_TYPE_CHOICES)  # Type of batch
     date_created = models.DateTimeField(auto_now_add=True)  # Timestamp
     overall_sentiment = models.CharField(max_length=20, choices=SENTIMENT_CHOICES, default='none')

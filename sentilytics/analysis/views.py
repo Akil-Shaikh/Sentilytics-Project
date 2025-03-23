@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from analysis.utils import sentiment_model,tfidf_vectorizer,pre,createVisuals
+from analysis.utils import sentiment_model,tfidf_vectorizer,pre,generateWordcloud
 from django.core.exceptions import ObjectDoesNotExist #?
 import traceback
 
@@ -21,7 +21,12 @@ from datetime import datetime
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Font
 
+from django.utils.dateparse import parse_date
+from django.db.models import Count, Q
+from django.utils.timezone import make_aware
+from collections import Counter
 
+    
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #single comment analysis
 class SingleCommentAnalysis(APIView):
@@ -103,6 +108,19 @@ class SingleCommentAnalysis(APIView):
         serializer = CommentSerializer(user_comments, many=True)
         return Response(serializer.data)
 
+#delete single comment related to user
+    def delete(self, request, pk):
+        """Delete a specific comment by ID."""
+        try:
+            if not request.user.is_authenticated:
+                return Response({"message": "Anonymous users cannot delete data."}, status=status.HTTP_403_FORBIDDEN)
+            comment = Comment.objects.get(id=pk,user=request.user.id)
+            comment.delete()
+            return Response({"message": "Comment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Comment.DoesNotExist:
+            return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #multiple comments analysis
@@ -138,9 +156,15 @@ class MultipleCommentsAnalysis(APIView):
 
             # Ensure the column is provided
             column = request.data.get("column")
+            batchname = request.data.get("batchname")
             if not column:
                 return Response({"error": "Column name is required."}, status=status.HTTP_400_BAD_REQUEST)
-
+            
+            if not batchname:
+                return Response({"error": "Batch name is required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if BatchComment.objects.filter(user=request.user.id,batchname=batchname).exists():
+                return Response({"error": f"A batch with name {batchname} already exists."}, status=status.HTTP_400_BAD_REQUEST)
             # Ensure the column exists in the DataFrame
             if column not in df.columns:
                 return Response({"error": f"File must contain a '{column}' column."}, status=status.HTTP_400_BAD_REQUEST)
@@ -176,14 +200,13 @@ class MultipleCommentsAnalysis(APIView):
             sentiment_counts = df["sentiment"].value_counts()
             
             # Sentiment Distribution Plot
-            buff_bar,buff_word=createVisuals(df)
-
-            Base64_bar = base64.b64encode(buff_bar.getvalue()).decode("utf-8")
+            buff_word=generateWordcloud(df)
             Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
 
             # Save Batch Analysis
             batch = BatchComment.objects.create(
-                user=request.user, 
+                user=request.user,
+                batchname=batchname,
                 comment_type=file_type, 
                 overall_sentiment=sentiment_counts.idxmax()
             )
@@ -204,7 +227,7 @@ class MultipleCommentsAnalysis(APIView):
             
             # Bulk save to database
             Comment.objects.bulk_create(comment_objects)
-
+            sentiment_count=Comment.objects.filter(user=request.user.id,batch=batch).values("sentiment").annotate(count=Count("sentiment"))
             # Serialize data
             batch_serializer = BatchCommentSerializer(batch)
             comments_serializer = CommentSerializer(comment_objects, many=True)
@@ -213,7 +236,7 @@ class MultipleCommentsAnalysis(APIView):
                 {
                     "batch_id": batch_serializer.data['id'],
                     "analyzed_comments": comments_serializer.data,
-                    "BarChart": "data:image/png;base64," + Base64_bar,
+                    "BarChart": {s["sentiment"]: s["count"] for s in sentiment_count},
                     "wordcloud": "data:image/png;base64," + Base64_word,
                 },
                 status=201,
@@ -240,7 +263,8 @@ class YoutubeCommentsAnalysis(APIView):
         return match.group(1) if match else None
 
     def post(self,request):
-        video_url = request.data["vid_url"]
+        video_url = request.data.get("vid_url")
+        batchname = request.data.get("batchname")
         if not video_url:
             return Response({"error": "No YouTube URL provided"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -248,7 +272,12 @@ class YoutubeCommentsAnalysis(APIView):
 
         if not video_id:
             return Response({"error": "Invalid YouTube URL"}, status=status.HTTP_400_BAD_REQUEST)
-
+        
+        if not batchname:
+            return Response({"error": "Batch name is required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if BatchComment.objects.filter(user=request.user.id,batchname=batchname).exists():
+            return Response({"error": f"A batch with name {batchname} already exists."}, status=status.HTTP_400_BAD_REQUEST)
         try:
             youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
             youtube_request = youtube.commentThreads().list(
@@ -281,11 +310,10 @@ class YoutubeCommentsAnalysis(APIView):
         sentiment_counts = df["sentiment"].value_counts()
         
         #creating visuals
-        buff_bar,buff_word=createVisuals(df)
+        buff_word=generateWordcloud(df)
         
-        Base64_bar = base64.b64encode(buff_bar.getvalue()).decode("utf-8")
         Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
-        batch = BatchComment.objects.create(user=request.user,comment_type="Youtube",overall_sentiment=sentiment_counts.idxmax())
+        batch = BatchComment.objects.create(user=request.user,comment_type="Youtube",overall_sentiment=sentiment_counts.idxmax(),batchname=batchname)
         
         comment_objects = [
             Comment(
@@ -301,7 +329,7 @@ class YoutubeCommentsAnalysis(APIView):
         ]
         
         Comment.objects.bulk_create(comment_objects)
-
+        sentiment_count=Comment.objects.filter(user=request.user.id,batch=batch).values("sentiment").annotate(count=Count("sentiment"))
         batch_serializer = BatchCommentSerializer(batch)
         comments_serializer = CommentSerializer(comment_objects, many=True)
 
@@ -309,7 +337,7 @@ class YoutubeCommentsAnalysis(APIView):
             {
                 "batch_id": batch_serializer.data['id'],
                 "analyzed_comments": comments_serializer.data,
-                "BarChart": "data:image/png;base64," + Base64_bar,
+                "BarChart": {s["sentiment"]: s["count"] for s in sentiment_count},
                 "wordcloud": "data:image/png;base64," + Base64_word,
             },
             status=201,
@@ -320,7 +348,6 @@ class YoutubeCommentsAnalysis(APIView):
 class Batch(APIView):
     
     permission_classes=[IsAuthenticated]
-
     def get(self,request, batch_id=None):
         # get all batches realated to the user
         if not batch_id:
@@ -338,22 +365,22 @@ class Batch(APIView):
 
         # Retrieve all related comments for the given batch
         comments = batch.comments.all()
-
+        sentiment_count=Comment.objects.filter(user=request.user.id,batch_id=batch_id).values("sentiment").annotate(count=Count("sentiment"))
         # Serialize the comments data
         serializer = CommentSerializer(comments, many=True)
         df=pd.DataFrame(serializer.data)
         #creating visuals
-        buff_bar,buff_word=createVisuals(df)
-        
-        Base64_bar = base64.b64encode(buff_bar.getvalue()).decode("utf-8")
+        buff_word=generateWordcloud(df)
         Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
+
         return Response(
             {
                 "batch_id": batch.id,
+                "batchname": batch.batchname,
                 "comment_type": batch.comment_type,
                 "date_created": batch.date_created,
                 "comments": serializer.data,
-                "BarChart": "data:image/png;base64," + Base64_bar,
+                "BarChart": {s["sentiment"]: s["count"] for s in sentiment_count},
                 "wordcloud": "data:image/png;base64," + Base64_word,
             }
         )
@@ -394,6 +421,17 @@ class Batch(APIView):
 
         return Response(corrected_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    #delete batch comment related to user
+    def delete(self, request, batch_id=None):
+        """Delete a specific batch by ID."""
+        try:
+            Batch = BatchComment.objects.get(id=batch_id,user=request.user.id)
+            Batch.delete()
+            return Response({"message": "Batch deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Batch.DoesNotExist:
+            return Response({"error": "Batch not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DownloadAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -411,8 +449,7 @@ class DownloadAPIView(APIView):
 
         date_created = df['date_created'].iloc[0] if not df.empty else "Unknown"
         date_created=datetime.fromisoformat(date_created).strftime('%B %d, %Y %I:%M %p')
-        
-        buff_bar,buff_word=createVisuals(df)
+        batchname=df['batchname'].iloc[0] if not df.empty else "Unknown"
         
         # Drop comment_type and date_created from the table
         df = df[['comment', 'sentiment', 'score']]
@@ -425,6 +462,7 @@ class DownloadAPIView(APIView):
 
         # Write title
         ws.append([f"Date: {date_created}"])
+        ws.append([f"Batch Name:{batchname}"])
         ws.append([])
 
         # Write headers
@@ -435,14 +473,6 @@ class DownloadAPIView(APIView):
         for _, row in df.iterrows():
             ws.append(row.tolist())
 
-        ws_images = wb.create_sheet(title="Images")
-        
-        img1 = Image(buff_bar)
-        img2 = Image(buff_word)
-
-        ws_images.add_image(img1, "B2")
-        ws_images.add_image(img2, "L2")
-
         # Save the workbook
         wb.save(output)
         output.seek(0)
@@ -452,3 +482,48 @@ class DownloadAPIView(APIView):
         response['Content-Disposition'] = f'attachment; filename=sentiment_analayis_comments.xlsx'
 
         return response
+    
+    
+class UserDashboardStats(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            start_date = request.GET.get("start_date")
+            end_date = request.GET.get("end_date")
+
+            if start_date and end_date:
+                parsed_start = parse_date(start_date)
+                parsed_end = parse_date(end_date)
+
+                if not parsed_start or not parsed_end:
+                    return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+
+                start_date = make_aware(datetime.combine(parsed_start, datetime.min.time()))
+                end_date = make_aware(datetime.combine(parsed_end, datetime.max.time()))
+            else:
+                start_date, end_date = None, None
+
+            # Apply filters only if start_date and end_date are provided
+            date_filter = Q()
+            date_filter_c = Q()
+            
+            if start_date and end_date:
+                date_filter &= Q(date_created__range=[start_date, end_date])
+                date_filter_c &= Q(corrected_at__range=[start_date, end_date])
+
+            # Fetch Data
+            comment_count = Comment.objects.filter(date_filter,user=request.user.id).count() if Comment.objects.filter(date_filter,user=request.user.id).exists() else 0
+            single_count = Comment.objects.filter(date_filter,user=request.user.id,comment_type='single').count() if Comment.objects.filter(date_filter,user=request.user.id,comment_type='single').exists() else 0
+            batch_count = BatchComment.objects.filter(date_filter,user=request.user.id).count() if BatchComment.objects.filter(date_filter,user=request.user.id).exists() else 0
+            sentiment_counts = Comment.objects.filter(date_filter,user=request.user.id).values("sentiment").annotate(count=Count("sentiment"))
+            return Response(
+                {
+                    "total_comments": comment_count,
+                    "total_single": single_count,
+                    "total_batches": batch_count,
+                    "sentiment_distribution": {s["sentiment"]: s["count"] for s in sentiment_counts},
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

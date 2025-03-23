@@ -1,6 +1,13 @@
 from django.urls import path
+from .views import (
+    SingleCommentAnalysis,
+    MultipleCommentsAnalysis,
+    Batch,
+    YoutubeCommentsAnalysis,
+    DownloadAPIView,
+    UserDashboardStats
+)
 
-from .views import SingleCommentAnalysis,MultipleCommentsAnalysis,Batch,YoutubeCommentsAnalysis,DownloadAPIView
 # generate_visualizations
 urlpatterns = [
     path('single/',SingleCommentAnalysis.as_view()),
@@ -11,4 +18,5 @@ urlpatterns = [
     path('multiple/batch/<int:batch_id>/',Batch.as_view()),
     path('multiple/batch/<int:batch_id>/<int:pk>/',Batch.as_view()),
     path('download/<int:batch_id>/',DownloadAPIView.as_view()),
+    path("dashboard-stats/", UserDashboardStats.as_view(), name="user_dashboard_stats"),
 ]
