@@ -1,0 +1,134 @@
+/* Admin Comment Management Styles */
+
+/* Container */
+.admin-comment-container {
+    flex-grow: 1;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+.admin-comment-header {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+/* Search & Filter Section */
+.admin-comment-controls {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-comment-controls input,
+.admin-comment-controls select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Table */
+.admin-comment-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.admin-comment-table th,
+.admin-comment-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.admin-comment-table th {
+    background: #007bff;
+    color: #fff;
+    font-weight: 600;
+}
+
+.admin-comment-table tr:hover {
+    background: #f5f5f5;
+}
+
+/* Sentiment Colors */
+.sentiment-positive {
+    color: green;
+    font-weight: bold;
+}
+
+.sentiment-negative {
+    color: red;
+    font-weight: bold;
+}
+
+.sentiment-neutral {
+    color: gray;
+    font-weight: bold;
+}
+
+/* Buttons */
+.admin-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.admin-btn.delete {
+    background: #dc3545;
+    color: white;
+}
+
+.admin-btn.delete:hover {
+    background: #c82333;
+}
+
+.admin-btn.export {
+    background: #28a745;
+    color: white;
+}
+
+.admin-btn.export:hover {
+    background: #218838;
+}
+
+/* Pagination */
+.admin-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.admin-pagination button {
+    padding: 8px 12px;
+    margin: 0 5px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.admin-pagination button.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.admin-pagination button:hover {
+    background: #0056b3;
+    color: white;
+}

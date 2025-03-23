@@ -1,0 +1,122 @@
+.dashboard-sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #2c3e50; /* Dark Blue */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+/* Sidebar Header */
+.dashboard-sidebar h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    border-bottom: 2px solid #1abc9c;
+    padding-bottom: 10px;
+}
+
+/* Sidebar Menu */
+.dashboard-sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dashboard-sidebar li {
+    padding: 12px 20px;
+    transition: background 0.3s ease-in-out;
+}
+
+.dashboard-sidebar li a {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    display: block;
+    transition: color 0.3s ease-in-out;
+}
+
+.dashboard-sidebar li:hover {
+    background-color: #34495e; /* Slightly lighter blue */
+}
+
+.dashboard-sidebar li a:hover {
+    color: #1abc9c; /* Highlight color */
+}
+
+/* Active Link */
+.dashboard-sidebar li.active {
+    background-color: #1abc9c; /* Teal for active */
+}
+
+.dashboard-sidebar li.active a {
+    color: white;
+    font-weight: bold;
+}
+
+/* drop Styling */
+.dashboard-sidebar .drop-header {
+    padding: 12px 20px;
+    cursor: pointer;
+    background-color: #2c3e50;
+    border-bottom: 1px solid #34495e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    transition: background 0.3s ease-in-out;
+}
+
+.dashboard-sidebar .drop-header:hover {
+    background-color: #34495e;
+    color: #1abc9c;
+}
+
+/* Rotate Arrow When Open */
+.dashboard-sidebar .drop-header span {
+    transition: transform 0.3s ease-in-out;
+}
+
+.dashboard-sidebar .drop-header.open span {
+    transform: rotate(180deg);
+}
+
+/* drop Menu */
+.dashboard-sidebar .drop-menu {
+    list-style: none;
+    padding-left: 10px;
+    background-color: #34495e;
+    display: block;
+    transition: all 0.3s ease-in-out;
+}
+
+.dashboard-sidebar .drop-menu li {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+}
+
+.dashboard-sidebar .drop-menu li a {
+    font-size: 0.9rem;
+}
+
+.dashboard-sidebar .drop-menu li:hover {
+    background-color: #1abc9c;
+}
+
+/* Logout Button */
+.dashboard-sidebar .logout {
+    margin-top: auto;
+    padding: 12px 20px;
+    text-align: center;
+    background-color: #e74c3c; /* Red for logout */
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.dashboard-sidebar .logout:hover {
+    background-color: #c0392b;
+}

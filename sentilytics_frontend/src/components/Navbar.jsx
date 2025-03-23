@@ -44,7 +44,7 @@ const Navbar = () => {
     const handleLogout = async () => {
         const token = localStorage.getItem("token");
         try {
-            const response = await fetch('https://sentilytics-backend.onrender.com/api/logout/', {
+            const response = await fetch('http://127.0.0.1:8000/api/logout/', {
                 method: "POST",
                 headers: {
                     Authorization: `Token ${token}`,
@@ -118,7 +118,7 @@ const Navbar = () => {
                                 {isDropdownVisible && (
                                     <div ref={dropdownRef} className="dropdown-menu">
                                         <p className="dropdown-item username">{localStorage.getItem("username")}</p> {/* Display Username */}
-                                        <Link to="/dashboard" className="dropdown-item clickable">Dashboard</Link>
+                                        <Link to="/dashboard/stats" className="dropdown-item clickable">Dashboard</Link>
                                         <button className="dropdown-item clickable" onClick={handleLogout}>Log out</button>
                                     </div>
                                 )}
