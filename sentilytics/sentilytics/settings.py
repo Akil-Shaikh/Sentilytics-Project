@@ -23,20 +23,20 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default-secret-key')
 DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+# DATABASES = {
+#     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+# }
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
-}
-'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'sentilytics_db',
-        'USER': 'postgres',
+        'USER': 'akil',
         'PASSWORD': 'akil123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
-'''
+
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(',')
 

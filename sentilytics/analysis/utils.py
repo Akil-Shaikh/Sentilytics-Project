@@ -53,35 +53,15 @@ class Preprocessor:
 
 
 
-def createVisuals(data):
+def generateWordcloud(data):
     df=pd.DataFrame(data)
-    # Sentiment Distribution Plot
-    sentiment_counts = df["sentiment"].value_counts()
-    buf_bar=BytesIO()
     buf_word=BytesIO()
-    plt.figure(figsize=(6, 4),facecolor="lightblue")
-    plt.bar(
-        x=["Positive", "Negative", "Neutral"],
-        height=[
-            sentiment_counts.get("positive", 0),
-            sentiment_counts.get("negative", 0),
-            sentiment_counts.get("neutral", 0),
-            ],
-            color=["g", "r", "grey"],
-        )
-    plt.title("Sentiment Distribution")
-    plt.xlabel("Sentiment")
-    plt.ylabel("Count")
-    plt.savefig(buf_bar, format="png")
-    plt.close()
-    # Word Cloud Generation
     text = " ".join(df["cleaned_text"].dropna())
     if text.strip():  # Generate word cloud only if there is valid text
         wordcloud = WordCloud(width=600, height=400, background_color="floralwhite").generate(text)
         wordcloud.to_image().save(buf_word, format="PNG")
-    buf_bar.seek(0)
     buf_word.seek(0)
-    return buf_bar,buf_word
+    return buf_word
     
 #instances
 pre=Preprocessor()
