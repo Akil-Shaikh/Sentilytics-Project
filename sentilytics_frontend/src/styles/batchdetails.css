@@ -1,5 +1,5 @@
 .batch-container {
-    /* background-color: red; */
+    flex-grow: 1;
     padding: 1rem;
 }
 
@@ -19,8 +19,8 @@
     display: flex;
     justify-content: center;  /* Centers horizontally */
     align-items: center;  /* Centers vertically */
-    height: 80vh;  /* Full viewport height */
-    width: 100vw;  /* Full viewport width */
+    height: 100%;
+    width: 100%;
 }
 .batch-table {
     border-collapse: collapse;
@@ -45,12 +45,7 @@
     text-align: justify;
 }
 
-.batch-chart {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-}
+
 .batch-chart h3{
     font-size: 2rem;
 }

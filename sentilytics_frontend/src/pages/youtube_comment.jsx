@@ -1,19 +1,40 @@
 import React from 'react'
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import DownloadButton from '../components/downloadButton';
+import { Line, Bar, Pie } from "react-chartjs-2";
+import "chart.js/auto";
 import "../styles/youtubeComment.css"
 
 const YoutubeComment = () => {
     const navigate = useNavigate();
     const [vid_url, setvid_url] = useState("");
+    const [batchname, setBatchname] = useState("");
     const [batchId, setBatchId] = useState("");
     const [analyzedComments, setAnalyzedComments] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [BarChart, setbarchart] = useState("");
+    const [BarChart, setbarchart] = useState([]);
     const [wordcloud, setwordcloud] = useState("");
     const [filter, setFilter] = useState("all");
     const [activeTab, setActiveTab] = useState("comments"); // Added activeTab state for tab switching
+    const barRef = useRef(null);
+    const lineRef = useRef(null);
+
+    const downloadChart = () => {
+        const b64_b = barRef.current.toBase64Image();
+        const b64_l = lineRef.current.toBase64Image();
+        const b64_w = wordcloud
+        const link = document.createElement("a");
+        link.href = b64_b;
+        link.download = "bar_chart.png";
+        link.click();
+        link.href = b64_l;
+        link.download = "line_chart.png";
+        link.click();
+        link.href = b64_w;
+        link.download = "wordcloud.png";
+        link.click();
+    };
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -31,7 +52,9 @@ const YoutubeComment = () => {
     const handlevidnChange = (event) => {
         setvid_url(event.target.value);
     };
-
+    const handlebatchnameChange = (event) => {
+        setBatchname(event.target.value);
+    };
     const handleSubmit = async (event) => {
         event.preventDefault();
         const token = localStorage.getItem("token");
@@ -39,10 +62,11 @@ const YoutubeComment = () => {
 
         const formData = new FormData();
         formData.append("vid_url", vid_url);
+        formData.append("batchname", batchname);
 
         try {
             setLoading(true);
-            const response = await fetch("https://sentilytics-backend.onrender.com/api/analyze/multipleYoutube/", {
+            const response = await fetch("http://127.0.0.1:8000/api/analyze/multipleYoutube/", {
                 method: "POST",
                 headers: token ? { Authorization: `Token ${token}` } : {},
                 body: formData,
@@ -66,6 +90,17 @@ const YoutubeComment = () => {
             setLoading(false);
         }
     };
+
+    const sentimentData = {
+        labels: Object.keys(BarChart),
+        datasets: [
+            {
+                label: "Sentiment Distribution",
+                data: Object.values(BarChart),
+                backgroundColor: ["#F44336", "#FF9800", "#4CAF50"], // Green, Orange, Red
+            },
+        ],
+    };
     return (
         <>
             <div className='yt-container'>
@@ -76,6 +111,7 @@ const YoutubeComment = () => {
                 <form action="" onSubmit={handleSubmit} className='yt-form'>
                     <label htmlFor="url" className='yt-label'>Enter URL : </label>
                     <input type="text" id="url" name="vid_url" className="yt-input" onChange={handlevidnChange} disabled={loading} placeholder='Youtube URL' />
+                    <input type="text" name="batchname" value={batchname} onChange={handlebatchnameChange} placeholder="Enter batch name" className="multi-input" disabled={loading} />
                     <input type="submit" value="Submit" className='yt-submit' disabled={loading} />
                 </form>
             </div>
@@ -95,7 +131,8 @@ const YoutubeComment = () => {
                     ) : analyzedComments.length > 0 ? (
                         <>
                             <button onClick={() => navigate(`/batch/${batchId}`)} className="detail-btn">Get More Details</button>
-                            <DownloadButton batch_Id={batchId} comment_type={"Youtube"} />
+                            {activeTab === "comments" ? <DownloadButton batch_Id={batchId} comment_type="Youtube" />
+                                : <button className="btn-download" onClick={downloadChart}>Download Chart</button>}
                             <div className="tab-container">
                                 <button className={`tab ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")}>
                                     Comments
@@ -106,14 +143,20 @@ const YoutubeComment = () => {
                             </div>
 
                             {activeTab === "chart" && (
-                                <div className="yt-chart">
-                                    <h3>Sentiment Analysis Charts</h3>
-                                    <div className="chart">
-                                        {BarChart && <img src={BarChart} alt="Bar Chart" className="yt-chart" />}
-                                        {wordcloud && <img src={wordcloud} alt="Word Cloud" className="yt-chart" />}
+                                <div className="chart-container">
+                                    <h2>Sentiment Distribution</h2>
+                                    <div className="chart-div">
+                                        <div className="chart">
+                                            <Bar ref={barRef} data={sentimentData} />
+                                        </div>
+                                        <div className="chart">
+                                            <Line ref={lineRef} data={sentimentData} />
+                                        </div>
+                                        <div className="chart">
+                                            {wordcloud && <img src={wordcloud} alt="Word Cloud" />}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                </div>)}
 
                             {activeTab === "comments" && (
                                 <div className="yt-comment-all">

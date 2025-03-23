@@ -1,7 +1,13 @@
+.dashboard-layout{
+    display: flex;
+}
+.dashboard-main-content{
+    flex-grow: 1;
+}
 .dashboard-container {
     /* background-color: red; */
     padding: 2rem;
-
+    flex-grow: 1;
 }
 
 .dashboard-container h2 {
