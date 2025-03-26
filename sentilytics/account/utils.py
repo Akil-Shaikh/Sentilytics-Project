@@ -10,8 +10,6 @@ def is_valid_password(password):
         return "Password must contain at least one lowercase letter."
     if not any(char.isdigit() for char in password):
         return "Password must contain at least one number."
-    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        return "Password must contain at least one special character (!@#$%^&* etc.)."
     return None
 
 def is_valid_username(username):

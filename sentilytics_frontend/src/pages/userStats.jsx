@@ -25,7 +25,7 @@ const UserStats = () => {
                 navigate("/login");
             }
             fetchStats();
-        }, [startDate, endDate, navigate]);
+        }, [ navigate]);
 
         const fetchStats = async () => {
             setLoading(true);
@@ -33,7 +33,9 @@ const UserStats = () => {
             try {
                 let url = "http://localhost:8000/api/dashboard-stats/";
                 if (startDate && endDate) {
-                    url += `?start_date=${startDate.toISOString().split("T")[0]}&end_date=${endDate.toISOString().split("T")[0]}`;
+                    const start=new Date(startDate)
+                    const end=new Date(endDate)
+                    url += `?start_date=${start.toISOString().split("T")[0]}&end_date=${end.toISOString().split("T")[0]}`;
                 }
 
                 const response = await fetch(url, {
@@ -75,8 +77,8 @@ const UserStats = () => {
 
                 {/* Date Filter */}
                 <div className="date-filters">
-                    <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} placeholderText="Start Date" />
-                    <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} placeholderText="End Date" />
+                    <DatePicker selected={startDate} maxDate={endDate?endDate:new Date()} onChange={(date) => setStartDate(date)} placeholderText="Start Date" />
+                    <DatePicker selected={endDate} maxDate={new Date()} minDate={startDate}onChange={(date) => setEndDate(date)} placeholderText="End Date" />
                     <button onClick={fetchStats}>Apply Filter</button>
                 </div>
 

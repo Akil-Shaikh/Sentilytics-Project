@@ -17,7 +17,7 @@ from googleapiclient.discovery import build
 from io import BytesIO
 import base64
 from openpyxl import Workbook
-from datetime import datetime
+from datetime import datetime,timedelta
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Font
 
@@ -25,6 +25,8 @@ from django.utils.dateparse import parse_date
 from django.db.models import Count, Q
 from django.utils.timezone import make_aware
 from collections import Counter
+
+from rest_framework.pagination import PageNumberPagination
 
     
 # -----------------------------------------------------------------------------------------------------------------------------------------
@@ -104,9 +106,31 @@ class SingleCommentAnalysis(APIView):
     def get(self,request):
         if not request.user.is_authenticated:
                 return Response({"message": "Anonymous users cannot store data."}, status=status.HTTP_403_FORBIDDEN)
-        user_comments = Comment.objects.filter(user=request.user,comment_type='single').order_by('-date_created')
-        serializer = CommentSerializer(user_comments, many=True)
-        return Response(serializer.data)
+        try:
+            try:
+                pageSize = int(request.GET.get('pageSize', 15))
+                
+                if pageSize <= 0 or pageSize>=20:
+                    pageSize = 15
+            except ValueError:
+                pageSize = 15
+            paginator=PageNumberPagination()
+            paginator.page_size=int(pageSize)
+            
+            order = request.GET.get('order', 'desc')
+            user_comments = Comment.objects.filter(user=request.user,comment_type='single').order_by('date_created' if order == 'asc' else '-date_created')
+            
+            sentiment = request.GET.get('sentiment')
+            if sentiment:
+                user_comments = user_comments.filter(sentiment=sentiment)
+                
+            paginated_comments=paginator.paginate_queryset(user_comments,request)
+            serializer = CommentSerializer(paginated_comments, many=True)
+            
+            return paginator.get_paginated_response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 #delete single comment related to user
     def delete(self, request, pk):
@@ -346,34 +370,89 @@ class YoutubeCommentsAnalysis(APIView):
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #batch comments class
 class Batch(APIView):
-    
-    permission_classes=[IsAuthenticated]
-    def get(self,request, batch_id=None):
-        # get all batches realated to the user
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, batch_id=None):
         if not batch_id:
-            batches = BatchComment.objects.filter(user=request.user).order_by('-date_created')
-            serializer = BatchCommentSerializer(batches, many=True)
-            return Response(serializer.data)
-        
-        # In details batch comments
+            batches = BatchComment.objects.filter(user=request.user)
+
+            # Apply filtering
+            comment_type = request.GET.get('comment_type')
+            if comment_type:
+                batches = batches.filter(comment_type=comment_type)
+
+            overall_sentiment = request.GET.get('overall_sentiment')
+            if overall_sentiment:
+                batches = batches.filter(overall_sentiment=overall_sentiment)
+
+            # Apply sorting with validation
+            valid_sort_fields = ['date_created', 'overall_sentiment', 'comment_type']
+            sort_by = request.GET.get('sort_by', 'date_created')
+            if sort_by not in valid_sort_fields:
+                sort_by = 'date_created'
+
+            order = request.GET.get('order', 'desc')
+            batches = batches.order_by(sort_by if order == 'asc' else f'-{sort_by}')
+
+            # Apply pagination with safe handling
+            try:
+                pageSize = int(request.GET.get('pageSize', 15))
+                
+                if pageSize <= 0 or pageSize>=20:
+                    pageSize = 15
+            except ValueError:
+                pageSize = 15
+
+            paginator = PageNumberPagination()
+            paginator.page_size = pageSize
+            paginated_batches = paginator.paginate_queryset(batches, request)
+            serializer = BatchCommentSerializer(paginated_batches, many=True)
+
+            return paginator.get_paginated_response(serializer.data)
+
+        # Fetch details of a specific batch
         try:
             batch = BatchComment.objects.get(id=batch_id, user=request.user)
         except BatchComment.DoesNotExist:
             return Response(
-                {"error": "Batch not found or does not belong to the user."}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Batch not found or does not belong to the user."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Retrieve all related comments for the given batch
+        # Fetch related comments
         comments = batch.comments.all()
-        sentiment_count=Comment.objects.filter(user=request.user.id,batch_id=batch_id).values("sentiment").annotate(count=Count("sentiment"))
-        # Serialize the comments data
-        serializer = CommentSerializer(comments, many=True)
-        df=pd.DataFrame(serializer.data)
-        #creating visuals
-        buff_word=generateWordcloud(df)
-        Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
 
-        return Response(
+        # Apply filtering on comments
+        sentiment_filter = request.GET.get('sentiment')
+        if sentiment_filter:
+            comments = comments.filter(sentiment=sentiment_filter)
+
+        # Apply sorting with validation
+        order = request.GET.get('order', 'desc')
+        comments = comments.order_by('date_created' if order == 'asc' else '-date_created') 
+
+        # Optimize sentiment count query
+        sentiment_count = comments.values("sentiment").annotate(count=Count("sentiment"))
+        try:
+                pageSize = int(request.GET.get('pageSize', 15))
+                if pageSize <= 0:
+                    pageSize = 15
+        except ValueError:
+                pageSize = 15
+        # Paginate comments safely
+        paginator = PageNumberPagination()
+        paginator.page_size = pageSize
+        paginated_comments = paginator.paginate_queryset(comments, request)
+        serializer = CommentSerializer(paginated_comments, many=True)
+
+        # Generate word cloud safely
+        df = pd.DataFrame(serializer.data)
+        Base64_word = None
+        if not df.empty:
+            buff_word = generateWordcloud(df)
+            Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
+
+        return paginator.get_paginated_response(
             {
                 "batch_id": batch.id,
                 "batchname": batch.batchname,
@@ -381,10 +460,10 @@ class Batch(APIView):
                 "date_created": batch.date_created,
                 "comments": serializer.data,
                 "BarChart": {s["sentiment"]: s["count"] for s in sentiment_count},
-                "wordcloud": "data:image/png;base64," + Base64_word,
+                "wordcloud": f"data:image/png;base64,{Base64_word}" if Base64_word else None,
             }
         )
-    
+
     def patch(self, request,batch_id, pk=None):
         try:
             batch=BatchComment.objects.get(id=batch_id,user=request.user)
@@ -490,10 +569,9 @@ class UserDashboardStats(APIView):
         try:
             start_date = request.GET.get("start_date")
             end_date = request.GET.get("end_date")
-
             if start_date and end_date:
-                parsed_start = parse_date(start_date)
-                parsed_end = parse_date(end_date)
+                parsed_start = parse_date(start_date)+timedelta(days=1)
+                parsed_end = parse_date(end_date)+timedelta(days=1)
 
                 if not parsed_start or not parsed_end:
                     return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
@@ -505,11 +583,10 @@ class UserDashboardStats(APIView):
 
             # Apply filters only if start_date and end_date are provided
             date_filter = Q()
-            date_filter_c = Q()
             
             if start_date and end_date:
                 date_filter &= Q(date_created__range=[start_date, end_date])
-                date_filter_c &= Q(corrected_at__range=[start_date, end_date])
+            
 
             # Fetch Data
             comment_count = Comment.objects.filter(date_filter,user=request.user.id).count() if Comment.objects.filter(date_filter,user=request.user.id).exists() else 0
