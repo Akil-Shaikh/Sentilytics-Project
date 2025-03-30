@@ -75,8 +75,8 @@ const UserStats = () => {
 
                 {/* Date Filter */}
                 <div className="date-filters">
-                    <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} placeholderText="Start Date" />
-                    <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} placeholderText="End Date" />
+                    <DatePicker selected={startDate} maxDate={endDate} onChange={(date) => setStartDate(date)} placeholderText="Start Date" />
+                    <DatePicker selected={endDate} minDate={startDate} maxDate={new Date()} onChange={(date) => setEndDate(date)} placeholderText="End Date" />
                     <button onClick={fetchStats}>Apply Filter</button>
                 </div>
 
