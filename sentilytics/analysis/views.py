@@ -17,7 +17,7 @@ from googleapiclient.discovery import build
 from io import BytesIO
 import base64
 from openpyxl import Workbook
-from datetime import datetime
+from datetime import datetime,timedelta
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Font
 
@@ -346,7 +346,7 @@ class YoutubeCommentsAnalysis(APIView):
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #batch comments class
 class Batch(APIView):
-    
+
     permission_classes=[IsAuthenticated]
     def get(self,request, batch_id=None):
         # get all batches realated to the user
@@ -354,7 +354,7 @@ class Batch(APIView):
             batches = BatchComment.objects.filter(user=request.user).order_by('-date_created')
             serializer = BatchCommentSerializer(batches, many=True)
             return Response(serializer.data)
-        
+
         # In details batch comments
         try:
             batch = BatchComment.objects.get(id=batch_id, user=request.user)
@@ -384,7 +384,7 @@ class Batch(APIView):
                 "wordcloud": "data:image/png;base64," + Base64_word,
             }
         )
-    
+
     def patch(self, request,batch_id, pk=None):
         try:
             batch=BatchComment.objects.get(id=batch_id,user=request.user)
@@ -490,10 +490,9 @@ class UserDashboardStats(APIView):
         try:
             start_date = request.GET.get("start_date")
             end_date = request.GET.get("end_date")
-
             if start_date and end_date:
-                parsed_start = parse_date(start_date)
-                parsed_end = parse_date(end_date)
+                parsed_start = parse_date(start_date)+timedelta(days=1)
+                parsed_end = parse_date(end_date)+timedelta(days=1)
 
                 if not parsed_start or not parsed_end:
                     return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
@@ -505,11 +504,10 @@ class UserDashboardStats(APIView):
 
             # Apply filters only if start_date and end_date are provided
             date_filter = Q()
-            date_filter_c = Q()
             
             if start_date and end_date:
                 date_filter &= Q(date_created__range=[start_date, end_date])
-                date_filter_c &= Q(corrected_at__range=[start_date, end_date])
+            
 
             # Fetch Data
             comment_count = Comment.objects.filter(date_filter,user=request.user.id).count() if Comment.objects.filter(date_filter,user=request.user.id).exists() else 0

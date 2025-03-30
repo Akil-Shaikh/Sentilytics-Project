@@ -8,7 +8,6 @@ import MultiComment from "./pages/multi_comment";
 import YoutubeComment from "./pages/youtube_comment";
 import BatchDetails from "./pages/batchdetails";
 import UserStats from "./pages/userStats";
-import UseSentilytics from "./pages/use_sentilytics";
 import About from "./pages/about";
 import Navbar from "./components/Navbar";
 import PageNotFound from "./pages/pagenotfound";
@@ -55,7 +54,6 @@ function AppContent() {
   <Route path="/" element={<UserLayout />}>
     <Route index element={<Homeopt />} />
     <Route path="multi_comment" element={<MultiComment />} />
-    <Route path="use_sentilytics" element={<UseSentilytics />} />
     <Route path="youtube_comment" element={<YoutubeComment />} />
     <Route path="single_comment" element={<SingleComment />} />
     <Route path="about" element={<About />} />
