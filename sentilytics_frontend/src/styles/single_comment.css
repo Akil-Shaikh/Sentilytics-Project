@@ -1,84 +1,115 @@
+/* single_comment.css */
+
 .single-comment {
-    /* background-color: red; */
     display: flex;
-    gap: 1rem;
     flex-direction: column;
-    align-items: flex-start;
-    padding: 5rem;
+    align-items: center;
+    min-height: 30vh;
+    background: #F7F4EF; /* Project's main color */
+    font-family: 'Poppins', sans-serif;
+    color: #111;
+    text-align: center;
+    padding: 20px;
+    margin-top: 4rem;
 }
-.single-comment h1{
-    font-family: "heading";
-    font-size: 4rem;
+
+.single-comment h1 {
+    font-size: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    color: #222;
 }
+.form-inputs{
+    margin: 6vh 0 6vh 0;
+}
+.single-form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    min-height: 30vh;
+    max-width: 700px;
+}
+
 .single-input {
-    width: 20rem;
-    height: 2.5rem;
-    padding: 1.5rem 1rem;
-    border: 2px solid #000;
-    border-radius: 0.5rem;
-    font-family: "sub-heading";
-    transition: 0.3s ease-in;
-    color: #000;
+    width: 100%;
+    padding: 12px;
     font-size: 1rem;
+    border: 2px solid #333;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+    background: #F7F4EF;
+    color: #111;
+    transition: 0.3s;
 }
-
-
-
 
 .single-input::placeholder {
-    color: #000;
-    opacity: 0.5;
-}
-
-.single-input:hover {
-    background-color: #fff;
+    color: #666;
 }
 
 .single-input:focus {
-    border: 2px solid #fff;
+    border-color: #000;
+    outline: none;
 }
 
 .single-submit {
-    width: 15rem;
     padding: 12px;
-    border: 2px solid #000;
-    border-radius: 8px;
-    /* background-color: #f5f5dc; */
+    font-size: 1rem;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    width: 7rem;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 16px;
-    color: #000;
     transition: all 0.3s ease-in-out;
-    font-family: "sub-heading";
 }
 
 .single-submit:hover {
-    background-color: #fff;
+    background: #222;
 }
 
-.single-submit:active {
-    background-color: #f5f5dc;
-    border: 2px solid #fff;
-    transform: scale(0.8);
+.single-submit:disabled {
+    background: #bbb;
+    cursor: not-allowed;
 }
 
+/* Analysis Result */
+.analysis-result {
+    margin-top: 8vh;
+    padding: 25px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #111;
+}
 
-.single-form {
-    display: flex;
-    gap: 1rem;
-    flex-direction: column;
-    /* background-color: rgb(62, 3, 3); */
+/* Sentiment Colors */
+.single-positive {
+    color: #008000; /* Dark Green */
+    font-weight: bold;
 }
-.analysis-result h2{
-    font-family: "heading";
-    text-transform: capitalize;
-    font-size: 2rem;
+
+.single-negative {
+    color: #cc0000; /* Dark Red */
+    font-weight: bold;
 }
-.single-positive{
-    color: green;
+
+.single-neutral {
+    color: #666; /* Gray */
+    font-weight: bold;
 }
-.single-negative{
-    color: red;
-}
-.single-postive{
-    color: grey;
+
+@media (max-width: 600px) {
+    .single-comment h1 {
+        font-size: 1.5rem;
+    }
+    .single-input, .single-submit {
+        font-size: 0.9rem;
+    }
 }
