@@ -242,7 +242,7 @@ const BatchDetails = () => {
                                     return (
                                         <tr key={comment.id}>
                                             <td>{index + 1}</td>
-                                            <td className="comment">{comment.comment}</td>
+                                            <td className={`comment ${comment.comment.length>400 && "expandable"}`}>{comment.comment}</td>
                                             {!editMode ? <td className={`batch-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td> : (!comment.is_updated ? (
                                                 <td>
                                                     <select

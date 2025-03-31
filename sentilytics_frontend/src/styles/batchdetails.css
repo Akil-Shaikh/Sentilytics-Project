@@ -23,29 +23,33 @@
     width: 100%;
 }
 .batch-table {
+    width: 100%;
     border-collapse: collapse;
-    border: 2px solid black;
+    margin-top: 20px;
 }
 
-.batch-table th {
-    padding: 1rem;
-    font-size: 1.2rem;
-    border: 2px solid black;
-    user-select: none;
-}
-
+.batch-table th,
 .batch-table td {
-    padding: 1rem;
-    text-align: center;
-    border: 2px solid black;
-    font-size: 1rem;
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left; /* Centers short content */
+}
+.expandable{
+    padding: 2px;
+}
+/* Comment Column */
+.batch-comment {
+    max-width: 300px; /* Adjust as needed */
+    word-wrap: break-word;
+    white-space: normal;
+    text-align: left; /* Align comments to the left */
 }
 
-.batch-table .comment{
-    text-align: justify;
+/* Header */
+.batch-table th {
+    background: black;
+    color: white;
 }
-
-
 .batch-chart h3{
     font-size: 2rem;
 }

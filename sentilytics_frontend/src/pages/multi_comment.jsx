@@ -205,7 +205,7 @@ const MultiComment = () => {
                                                     {filteredComments.map((comment, index) => (
                                                         <tr key={comment.id}>
                                                             <td>{index + 1}</td>
-                                                            <td className="comment">{comment.comment}</td>
+                                                            <td className={`comment ${comment.comment.length>400 && "expandable"}`}>{comment.comment}</td>
                                                             <td className={`multi-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
                                                             <td>{comment.score || "N/A"}</td>
                                                         </tr>

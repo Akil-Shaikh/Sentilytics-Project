@@ -47,32 +47,34 @@
 }
 
 .dashboard-table {
+    width: 100%;
     border-collapse: collapse;
-    border: 2px solid black;
+    margin-top: 20px;
 }
 
+.dashboard-table th,
+.dashboard-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Comment Column */
+.dashboard-comment {
+    max-width: 300px; /* Adjust as needed */
+    word-wrap: break-word;
+    white-space: normal;
+    text-align: left; /* Align comments to the left */
+}
+
+/* Header */
 .dashboard-table th {
-    padding: 1rem;
-    font-size: 1.2rem;
-    border: 2px solid black;
-    cursor: default;
+    background: black;
+    color: white;
 }
-
-.dashboard-table .sort-th {
-    cursor: pointer;
-}
-
 .dashboard-table .active-sort {
     text-decoration: underline;
 }
-
-.dashboard-table td {
-    padding: 1.5rem;
-    text-align: center;
-    border: 2px solid black;
-    font-size: 1rem;
-}
-
 
 
 .dashboard-positive {

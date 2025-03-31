@@ -43,8 +43,9 @@ function SingleComment() {
 
     return (
         <div className="single-comment">
-            <h1>Try Sentilytics</h1>
             <form className="single-form" onSubmit={handleSubmit}>
+                <h1>Analyze Single Comments</h1>
+                <div className="form-inputs">
                 <input 
                     type="text" 
                     name="text" 
@@ -54,7 +55,7 @@ function SingleComment() {
                     onChange={(e) => setText(e.target.value)}
                 />
                 <input type="submit" value={loading ? "Analyzing..." : "Submit"} className="single-submit" disabled={loading} />
-                
+                </div>
                 {analyzedComment && (
                     <div className="analysis-result">
                         <h2 className={`single-${analyzedComment.sentiment}`}>Sentiment: {analyzedComment.sentiment}</h2>
