@@ -6,23 +6,22 @@ const Developers = () => {
     {
       name: "Akil Shaikh",
       role: "Backend Developer",
-      github: "https://github.com/akilshaikh",
-      linkedin: "https://linkedin.com/in/akilshaikh",
-      image: "/images/akil.jpg"
+      github: "https://github.com/Akil-Shaikh",
+      linkedin: "https://www.linkedin.com/in/akil-shaikh-49118a285/"
     },
     {
       name: "Shahid Shaikh",
       role: "Frontend Developer",
       github: "https://github.com/shahidshaikh",
       linkedin: "https://linkedin.com/in/shahidshaikh",
-      image: "/images/shahid.jpg"
+     
     },
     {
       name: "Akbar Ali",
-      role: "Project Name Finder",
+      role: "Half PPT Maker",
       github: "https://github.com/akbarali",
       linkedin: "https://linkedin.com/in/akbarali",
-      image: "/images/akbar.jpg"
+    
     }
   ];
 
@@ -32,9 +31,6 @@ const Developers = () => {
       <div className="developers-grid">
         {developers.map((dev, index) => (
           <div key={index} className="developer-card">
-            <div className="developer-image">
-              <img src={dev.image} alt={dev.name} />
-            </div>
             <div className="developer-info">
               <h3>{dev.name}</h3>
               <p>{dev.role}</p>

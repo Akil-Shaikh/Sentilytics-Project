@@ -68,8 +68,10 @@
 
 .loading-align {
     display: flex;
-    justify-content: center;  /* Centers horizontally */
-    align-items: center;  /* Centers vertically */
+    justify-content: center;
+    /* Centers horizontally */
+    align-items: center;
+    /* Centers vertically */
     height: 100%;
     width: 100%;
 }
@@ -92,6 +94,10 @@
     font-weight: bold;
 }
 
-.loading{
+.loading {
     margin: auto 0;
+}
+
+.batch-data p:last-child {
+    font-size: 1.25rem;
 }

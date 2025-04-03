@@ -369,7 +369,7 @@ class Batch(APIView):
         # Serialize the comments data
         serializer = CommentSerializer(comments, many=True)
         df=pd.DataFrame(serializer.data)
-        #creating visuals
+        #creating wordcloud
         buff_word=generateWordcloud(df)
         Base64_word = base64.b64encode(buff_word.getvalue()).decode("utf-8")
 
@@ -400,7 +400,7 @@ class Batch(APIView):
 
         corrected_sentiment = request.data.get("sentiment")
         
-        # Update the original SingleComment object
+        # Update the original Singelomment object
         if corrected_sentiment not in ["positive", "negative", "neutral"]:
             return Response({"error": "Invalid sentiment value"}, status=status.HTTP_400_BAD_REQUEST)
         if comment.sentiment==corrected_sentiment:
