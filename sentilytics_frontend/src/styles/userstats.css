@@ -43,6 +43,52 @@
 
 }
 
+.chart-container {
+  width: 100%;
+  margin: auto;
+  text-align: center;
+  padding: 2rem 0;
+  background-color: #F7F4EF;
+  /* background-color: red; */
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.chart-div {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  justify-content: start;
+  background-color: #F7F4EF;
+
+}
+
+.chart {
+  background: #fff;
+  padding: 15px;
+  background-color: #F7F4EF;
+
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Make the last chart take full width in the second row */
+.chart:nth-child(3) {
+  grid-column: 1 / 2;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 .btn-l-top {
   width: 10rem;
   --button_radius: 0.75em;
@@ -53,6 +99,9 @@
   border-radius: var(--button_radius);
 }
 
+.active {
+  background-color: red;
+}
 
 .btn-l {
   cursor: pointer;
@@ -105,6 +154,9 @@
   border-radius: var(--button_radius);
 }
 
+.active {
+  background-color: red;
+}
 
 .btn-m {
   cursor: pointer;
@@ -149,6 +201,9 @@
 
 
 
+.active {
+  background-color: red;
+}
 
 .btn-dash {
   cursor: pointer;

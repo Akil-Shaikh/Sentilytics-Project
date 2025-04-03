@@ -1,6 +1,6 @@
 import { useState } from 'react';
-
-const DownloadButton = ({batch_Id,comment_type}) => {
+import '../styles/downloadButton.css'
+const DownloadButton = ({ batch_Id, comment_type }) => {
     const [isDownloading, setIsDownloading] = useState(false);
     const handleDownload = async () => {
         setIsDownloading(true)
@@ -36,10 +36,16 @@ const DownloadButton = ({batch_Id,comment_type}) => {
             console.error("Download failed:", error);
             alert("Failed to download file. Please try again.");
         }
-        finally{
+        finally {
             setIsDownloading(false)
         }
     };
-    return (<button className="btn-pages" onClick={handleDownload} disabled={isDownloading}>{isDownloading ? "Downloading..." : "Download Excel"}</button>);
+    return (
+
+
+        <button className="btn-pages" onClick={handleDownload} disabled={isDownloading}>{isDownloading ? "Downloading..." : "Download Excel"}</button>
+
+        // <button className="btn-download" onClick={handleDownload} disabled={isDownloading}>{isDownloading ? "Downloading..." : "Download Excel"}</button>
+    );
 }
 export default DownloadButton
