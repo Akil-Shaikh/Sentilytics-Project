@@ -46,15 +46,15 @@ function SingleComment() {
             <form className="single-form" onSubmit={handleSubmit}>
                 <h1>Analyze Single Comments</h1>
                 <div className="form-inputs">
-                <input 
-                    type="text" 
-                    name="text" 
-                    placeholder="Enter Your Comment" 
-                    className="single-input"
-                    value={text} 
-                    onChange={(e) => setText(e.target.value)}
-                />
-                <input type="submit" value={loading ? "Analyzing..." : "Submit"} className="single-submit" disabled={loading} />
+                    <input
+                        type="text"
+                        name="text"
+                        placeholder="Enter Your Comment"
+                        className="single-input"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                    />
+                    <input type="submit" value={loading ? "Analyzing..." : "Submit"} className="btn-pages" disabled={loading} />
                 </div>
                 {analyzedComment && (
                     <div className="analysis-result">

@@ -183,7 +183,9 @@ const BatchDetails = () => {
                     <p><strong>Name:</strong> {batchData?.batchname}</p>
                     <p><strong>Type:</strong> {batchData?.comment_type}</p>
                     <p><strong>Date Created:</strong> {formatDate(batchData?.date_created)}</p>
+                    <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
                 </div>
+                
                 <div className="tab-container">
                     <button className={`btn-pages ${activeTab === "comments" ? "page-active" : ""}`} onClick={() => { setActiveTab("comments"); }}>
                         Comments
@@ -195,6 +197,7 @@ const BatchDetails = () => {
                         : <button className="btn-pages" onClick={downloadChart}>Download Chart</button>}
                     <button onClick={() => handleDelete(batch_id)} className="btn-pages delete-btn">Delete</button>
                     <button onClick={toggleEditMode} className="btn-pages">{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
+                    
 
                 </div>
             </div>
@@ -215,7 +218,7 @@ const BatchDetails = () => {
                 </div>)}
             {activeTab === "comments" && (
                 <div className="batch-comment-all">
-                    <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
+                    
                     <div className="filter-comment">
                         <label><strong>Filter Comments:</strong></label>
                         <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -250,6 +253,7 @@ const BatchDetails = () => {
                                                         value={editedValue[comment.id] || comment.sentiment}
                                                         onChange={(e) => setEditedValue((prev) => ({ ...prev, [comment.id]: e.target.value }))}
                                                         disabled={loadingEdits[comment.id]}
+                                                        className="edit-filter"
                                                     >
                                                         <option value="positive">Positive</option>
                                                         <option value="negative">Negative</option>
@@ -262,7 +266,7 @@ const BatchDetails = () => {
                                             {editMode ?
                                                 (!comment.is_updated ? (
                                                     <><td>
-                                                        <button className="confirm-btn" onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
+                                                        <button className="btn-filter" onClick={() => handleSubmitEdit(comment)} disabled={loadingEdits[comment.id]}>
                                                             {loadingEdits[comment.id] ? "Saving..." : "Confirm"}
                                                         </button>
                                                     </td>

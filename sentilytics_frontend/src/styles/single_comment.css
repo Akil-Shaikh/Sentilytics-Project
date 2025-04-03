@@ -2,8 +2,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 30vh;
-    background: #F7F4EF; /* Project's main color */
+    min-height: 100vh;
+    background: #F7F4EF;
+    /* Project's main color */
     font-family: 'Poppins', sans-serif;
     color: #111;
     text-align: center;
@@ -14,13 +15,20 @@
 .single-comment h1 {
     font-size: 2rem;
     text-transform: uppercase;
+    font-family: "heading";
     letter-spacing: 1px;
     font-weight: 600;
     color: #222;
 }
-.form-inputs{
+
+.form-inputs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
     margin: 6vh 0 6vh 0;
 }
+
 .single-form {
     background: #fff;
     padding: 20px;
@@ -33,25 +41,28 @@
 }
 
 .single-input {
-    width: 100%;
-    padding: 12px;
+    width: 20rem;
+    height: 2.5rem;
+    padding: 1.5rem 1rem;
+    border: 2px solid #000;
+    border-radius: 0.5rem;
+    font-family: "sub-heading";
+    transition: 0.3s ease-in;
+    color: #000;
     font-size: 1rem;
-    border: 2px solid #333;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    text-align: center;
-    background: #F7F4EF;
-    color: #111;
-    transition: 0.3s;
 }
 
 .single-input::placeholder {
-    color: #666;
+    color: #000;
+    opacity: 0.5;
+}
+
+.single-input:hover {
+    background-color: #fff;
 }
 
 .single-input:focus {
-    border-color: #000;
-    outline: none;
+    border: 2px solid #fff;
 }
 
 .single-submit {
@@ -89,17 +100,20 @@
 
 /* Sentiment Colors */
 .single-positive {
-    color: #008000; /* Dark Green */
+    color: #008000;
+    /* Dark Green */
     font-weight: bold;
 }
 
 .single-negative {
-    color: #cc0000; /* Dark Red */
+    color: #cc0000;
+    /* Dark Red */
     font-weight: bold;
 }
 
 .single-neutral {
-    color: #666; /* Gray */
+    color: #666;
+    /* Gray */
     font-weight: bold;
 }
 
@@ -107,7 +121,9 @@
     .single-comment h1 {
         font-size: 1.5rem;
     }
-    .single-input, .single-submit {
+
+    .single-input,
+    .single-submit {
         font-size: 0.9rem;
     }
 }
