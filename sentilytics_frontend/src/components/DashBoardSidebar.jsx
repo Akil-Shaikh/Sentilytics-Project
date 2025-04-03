@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/dbsidebar.css";
 
 const DashboardSidebar = () => {
-    const navigate=useNavigate();
+    const navigate = useNavigate();
     const handleLogout = async () => {
         const token = localStorage.getItem("token");
         try {
@@ -28,13 +28,46 @@ const DashboardSidebar = () => {
     return (
         <div className="dashboard-sidebar">
             <h2>Dashboard</h2>
-            <ul>
+
+
+
+            <div className="sidebar">
+
+                <Link className="btn-big dash" to="/dashboard/stats">
+                    <i className="bi bi-person-fill"></i>
+                    User Statistics
+                </Link>
+
+
+                <Link className="btn-big dash" to="/dashboard/comments">
+                    <i className="bi bi-chat"></i>
+                    Single Comment</Link>
+
+
+                <Link className="btn-big dash" to="/dashboard/batch">
+                    <i class="bi bi-collection"></i>
+                    Batch Comments</Link>
+
+
+                <Link className="btn-big dash" to="/">
+                    <i className="bi bi-box-arrow-right"></i>
+                    Exit Dashboard</Link>
+
+
+                <div className="btn-big dash-logout" onClick={handleLogout}>Log Out</div>
+
+
+            </div>
+
+
+
+            {/* <ul>
                 <li><Link to="/dashboard/stats">User Statistics</Link></li>
                 <li><Link to="/dashboard/comments">Single Comments</Link></li>
                 <li><Link to="/dashboard/batch">Batch Comments</Link></li>
                 <li><Link to="/">Exit Dashboard</Link></li>
-                <li className="logout"  onClick={handleLogout}>Logout</li>
-            </ul>
+                <li className="logout" onClick={handleLogout}>Logout</li>
+            </ul> */}
         </div>
     );
 };
