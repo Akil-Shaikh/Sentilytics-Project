@@ -1,5 +1,5 @@
 import React from 'react';
-import "../styles/homeopt.css"
+import "../styles/home.css"
 const Features = ({ features }) => {
   return (
     <div className="home-features">

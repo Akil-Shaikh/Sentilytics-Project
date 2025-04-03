@@ -1,6 +1,3 @@
-/* background-color: #fff;
-    color: #252525; */
-
     .detail-btn {
         width: 10rem;
     }
@@ -59,16 +56,11 @@
         background-color: #fff;
         color: #252525;
         border-color: #252525;
-        /* transform: scale(1.1); */
     
     }
-    
-    
     .hidden-file {
         display: none;
     }
-    
-    
     .multi-input {
         width: 20rem;
         height: 2.5rem;
@@ -133,105 +125,4 @@
     
     .multi-form p {
         color: #252525;
-    }
-    
-    
-    
-    
-    .multi-detail-btn {
-        padding: 1rem 0.5rem;
-        text-align: center;
-        background-color: #75D198;
-        font-family: "sub-heading";
-        font-size: 1rem;
-        border-radius: 1rem;
-        color: #000;
-        text-decoration: none;
-        transition: .2s ease-in;
-        display: inline-block;
-        border: 2px solid #000;
-        cursor: pointer;
-    }
-    
-    .multi-detail-btn:hover {
-        background-color: #fff;
-        color: #252525;
-        /* transform: scale(1.1); */
-        border: 2px solid #252525;
-    }
-    
-    .multi-detail-btn:active {
-        background-color: #252525;
-        color: #fff;
-        transform: scale(0.9);
-    }
-    
-    /* .filter-comment {
-        display: flex;
-        gap: 2rem;
-        font-size: 1.5rem;
-        padding: 1rem 0;
-        align-items: center;
-    }
-    
-    .filter-comment select {
-        border: 1px solid;
-        border-radius: 0.5rem;
-        padding: 0.4rem;
-    } */
-    
-    .multi-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    
-    .multi-table th,
-    .multi-table td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        text-align: left;
-    }
-    
-    .multi-table th {
-        background: black;
-        color: white;
-    }
-    
-    .multi-chart {
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
-    }
-    
-    .multi-chart h3 {
-        font-size: 2rem;
-    }
-    
-    .chart {
-        display: flex;
-        justify-content: space-around;
-    }
-    
-    .chart img {
-        height: 25rem;
-    }
-    
-    .multi-positive {
-        color: green;
-        text-transform: capitalize;
-        font-weight: bold;
-    }
-    
-    .multi-negative {
-        color: red;
-        text-transform: capitalize;
-        font-weight: bold;
-    }
-    
-    .multi-neutral {
-        color: grey;
-        text-transform: capitalize;
-        font-weight: bold;
     }

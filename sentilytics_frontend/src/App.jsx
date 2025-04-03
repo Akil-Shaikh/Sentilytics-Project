@@ -3,12 +3,11 @@ import "./App.css";
 import { Outlet } from "react-router-dom";
 import Login from "./pages/login";
 import Register from "./pages/register";
-import Homeopt from "./pages/homeopt";
+import Home from "./pages/home";
 import MultiComment from "./pages/multi_comment";
 import YoutubeComment from "./pages/youtube_comment";
 import BatchDetails from "./pages/batchdetails";
 import UserStats from "./pages/userStats";
-import About from "./pages/about";
 import Navbar from "./components/Navbar";
 import PageNotFound from "./pages/pagenotfound";
 import SingleComment from "./pages/single_comment";
@@ -52,11 +51,10 @@ function AppContent() {
 <Routes>
   {/* General routes for non-dashboard pages */}
   <Route path="/" element={<UserLayout />}>
-    <Route index element={<Homeopt />} />
+    <Route index element={<Home />} />
     <Route path="multi_comment" element={<MultiComment />} />
     <Route path="youtube_comment" element={<YoutubeComment />} />
     <Route path="single_comment" element={<SingleComment />} />
-    <Route path="about" element={<About />} />
   </Route>
   {/* Auth Routes (No Layout) */}
   <Route path="/login" element={<Login />} />

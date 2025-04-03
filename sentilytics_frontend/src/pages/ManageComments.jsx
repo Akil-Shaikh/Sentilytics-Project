@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/managecomments.css"; // Adjust the path as needed
+
 const formatDate = (isoString) => {
     const dateObj = new Date(isoString);
     return {
@@ -159,21 +159,21 @@ const ManageComments = () => {
         <div className="dashboard-container">
             <h2>Welcome, {localStorage.getItem("username")}!</h2>
 
-            {/* Tab Navigation */}
-            <div className="tab-container">
-            </div>
+            
             <div className="tab-content">
                 <h3>Your Single Comments</h3>
-                <div className="dashboard-filter">
+                <div className="filter">
                     <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
                     <button className="edit-mode" onClick={toggleEditMode}>{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
-                    <label>Filter by Sentiment:</label>
-                    <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)}>
-                        <option value="">All</option>
-                        <option value="positive">Positive</option>
-                        <option value="negative">Negative</option>
-                        <option value="neutral">Neutral</option>
-                    </select>
+                    <div className="filter-comment">
+                                                <label><strong>Filter Comments:</strong></label>
+                                                <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)}>
+                                                    <option value="">All</option>
+                                                    <option value="positive">Positive</option>
+                                                    <option value="negative">Negative</option>
+                                                    <option value="neutral">Neutral</option>
+                                                </select>
+                                            </div>
 
                     <button onClick={() => handleFilter('single')} className="filter-btnn">Apply Filters</button>
                 </div>
@@ -188,7 +188,7 @@ const ManageComments = () => {
                         </div></div>
                 ) :
                     filteredSingleComments.length > 0 ? (
-                        <table border="1" width="100%" cellPadding="8" className="dashboard-table">
+                        <table className="table">
                             <thead>
                                 <tr>
                                     <th>Index</th>
@@ -201,7 +201,6 @@ const ManageComments = () => {
                                         Sentiment {sortField === "sentiment" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
                                     </th>
                                     {!editMode ? <th>Score</th> : <th colSpan={2} >Action</th>}
-                                    {editMode && <th>Status</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -210,10 +209,10 @@ const ManageComments = () => {
                                     return (
                                         <tr key={comment.id}>
                                             <td>{index + 1}</td>
-                                            <td className="comment">{comment.comment}</td>
+                                            <td className={`comment ${comment.comment.length>400 && "expandable"}`}>{comment.comment}</td>
                                             <td>{date}</td>
                                             <td>{time}</td>
-                                            {!editMode ? <td className={`dashboard-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td> : (!comment.is_updated ? (
+                                            {!editMode ? <td className={`table-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td> : (!comment.is_updated ? (
                                                 <td>
                                                     <select
                                                         value={editedValue[comment.id] || comment.sentiment}
@@ -226,7 +225,7 @@ const ManageComments = () => {
                                                     </select>
                                                 </td>
 
-                                            ) : (<td className={`dashboard-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
+                                            ) : (<td className={`table-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
                                             ))}
                                             {editMode ?
                                                 (!comment.is_updated ? (
@@ -238,9 +237,9 @@ const ManageComments = () => {
                                                         </button>
                                                     </td>
                                                         <td>
-                                                            <button onClick={() => handleDelete(comment.id)} className="confirm-btn">Delete</button>
+                                                            <button onClick={() => handleDelete(comment.id)} className="delete-btn">Delete</button>
                                                         </td>
-                                                        <td>---</td></>
+                                                        </>
                                                 ) : <>
                                                     <td>{comment.feedback_verified === null
                                                         ? `Suggestion : ${comment.corrected_sentiment}`

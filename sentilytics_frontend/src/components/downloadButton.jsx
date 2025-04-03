@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import '../styles/downloadButton.css'
+
 const DownloadButton = ({batch_Id,comment_type}) => {
     const [isDownloading, setIsDownloading] = useState(false);
     const handleDownload = async () => {
@@ -40,6 +40,6 @@ const DownloadButton = ({batch_Id,comment_type}) => {
             setIsDownloading(false)
         }
     };
-    return (<button className="btn-download" onClick={handleDownload} disabled={isDownloading}>{isDownloading ? "Downloading..." : "Download Excel"}</button>);
+    return (<button className="btn-pages" onClick={handleDownload} disabled={isDownloading}>{isDownloading ? "Downloading..." : "Download Excel"}</button>);
 }
 export default DownloadButton

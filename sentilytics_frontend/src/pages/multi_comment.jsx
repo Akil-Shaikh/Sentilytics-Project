@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import "chart.js/auto";
@@ -117,7 +117,7 @@ const MultiComment = () => {
             },
         ],
     };
-    
+
     return (
         <>
             <div className="multi-container">
@@ -149,16 +149,16 @@ const MultiComment = () => {
                             </div></div>
                     ) : analyzedComments.length > 0 ? (
                         <>
-                            <button onClick={() => navigate(`/batch/${batchId}`)} className="detail-btn">Get More Details</button>
-                            {activeTab === "comments" ? <DownloadButton batch_Id={batchId} comment_type={analyzedComments.comment_type} />
-                                : <button className="btn-download" onClick={downloadChart}>Download Chart</button>}
                             <div className="tab-container">
-                                <button className={`tab ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")}>
+                                <button className={`btn-pages ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")}>
                                     Comments
                                 </button>
-                                <button className={`tab ${activeTab === "chart" ? "active" : ""}`} onClick={() => setActiveTab("chart")}>
+                                <button className={`btn-pages ${activeTab === "chart" ? "active" : ""}`} onClick={() => setActiveTab("chart")}>
                                     Charts
                                 </button>
+                                <button onClick={() => navigate(`/dashboard/batch/${batchId}`)} className="btn-pages">Get More Details</button>
+                                {activeTab === "comments" ? <DownloadButton  batch_Id={batchId} comment_type={analyzedComments.comment_type} />
+                                    : <button className="btn-pages" onClick={downloadChart}>Download Chart</button>}
                             </div>
 
                             {activeTab === "chart" && (
@@ -192,7 +192,7 @@ const MultiComment = () => {
                                                 </select>
                                             </div>
 
-                                            <table className="multi-table">
+                                            <table className="table">
                                                 <thead>
                                                     <tr>
                                                         <th>Index</th>
@@ -205,8 +205,8 @@ const MultiComment = () => {
                                                     {filteredComments.map((comment, index) => (
                                                         <tr key={comment.id}>
                                                             <td>{index + 1}</td>
-                                                            <td className={`comment ${comment.comment.length>400 && "expandable"}`}>{comment.comment}</td>
-                                                            <td className={`multi-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
+                                                            <td className={`comment ${comment.comment.length > 400 && "expandable"}`}>{comment.comment}</td>
+                                                            <td className={`table-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
                                                             <td>{comment.score || "N/A"}</td>
                                                         </tr>
                                                     ))}
