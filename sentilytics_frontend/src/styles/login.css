@@ -14,9 +14,11 @@
     box-sizing: border-box;
 }
 
+body {
+    font-family: "sub-heading";
+}
 
 .login-container {
-    /* background-color: red; */
     height: 100vh;
     display: flex;
     width: 100%;
@@ -34,15 +36,15 @@
 
 .login-card {
     background-color: #f5f5f5;
-    height: 70%;
+    height: auto; /* Changed from fixed 70% to auto for better responsiveness */
     width: 25%;
+    min-width: 320px; /* Minimum width for small screens */
     padding: 3rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: .5rem;
-    /* border-radius: 1rem; */
+    gap: 0.5rem;
     box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -55,22 +57,23 @@
     font-size: 3.5rem;
     color: #202020;
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 1rem;
 }
 
 .login-form {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
     justify-content: center;
     width: 100%;
-    gap: .5rem;
+    gap: 0.5rem;
 }
 
 .login-form label {
     font-family: "sub-heading";
     font-size: 1rem;
     color: #202020;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .login-input {
@@ -83,31 +86,80 @@
     background-color: #fff;
     color: #202020;
     box-shadow: inset 0px 4px 8px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
+/* Error styling for inputs */
+.error-input {
+    border-color: #e53e3e;
+    background-color: #fff5f5;
+}
+
+/* Error message styling */
+.error-message {
+    color: #e53e3e;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    font-weight: bold;
+    padding-left: 0.5rem;
+    width: 100%;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* General error banner */
+.error-banner {
+    background-color: #fff5f5;
+    border: 1px solid #e53e3e;
+    border-left: 4px solid #e53e3e;
+    color: #e53e3e;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 .login-btn {
-    padding: 1rem 2rem;
-    border-radius: 0.5rem;
-    font-family: "sub-heading";
-    background-color: #fff;
-    color: #202020;
-    font-size: 1.25rem;
+    --button_radius: 0.75em;
+    --button_color: #ffffff;
+    --button_outline_color: #000000;
+    font-weight: bold;
+    width: 100%;
+    background-color: var(--button_outline_color);
+    border-radius: var(--button_radius);
+    align-self: center;
+    margin: 1rem 0;
+}
+
+.login-top {
     cursor: pointer;
-    border: 2px solid #202020;
-    transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+    font-size: 16px;
+    width: 100%;
+    font-family: "sub-heading";
+    display: block;
+    box-sizing: border-box;
+    border: 2px solid var(--button_outline_color);
+    border-radius: var(--button_radius);
+    padding: 0.75em 1.5em;
+    background: var(--button_color);
+    color: var(--button_outline_color);
+    transform: translateY(-0.2em);
+    transition: transform 0.1s ease;
 }
 
-.login-btn:hover {
-    background-color: #202020;
-    transform: scale(1.05);
-    border: 2px solid #fff;
-    color: #fff;
+.login-btn:hover .login-top {
+    transform: translateY(-0.33em);
 }
 
-.login-btn:active {
-    transform: scale(0.9);
+.login-btn:active .login-top {
+    transform: translateY(0);
 }
 
 .login-form p {
@@ -115,4 +167,17 @@
     color: #202020;
     font-size: 0.9rem;
     margin-top: 0.5rem;
+    width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .login-card {
+        width: 90%;
+        padding: 2rem;
+    }
+    
+    .login-card h1 {
+        font-size: 2.5rem;
+    }
 }

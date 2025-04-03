@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/dashboard.css";
 
 const formatDate = (isoString) => {
     const dateObj = new Date(isoString);
@@ -119,21 +118,24 @@ const ManageBatch = () => {
 
             <h3>Your Batch Comments</h3>
             <div className="dashboard-filter">
-                <label>Filter by Type:</label>
-                <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="type-filter">
-                    <option value="">All</option>
-                    <option value="CSV File">CSV File</option>
-                    <option value="Excel File">Excel File</option>
-                    <option value="Youtube">Youtube Comment</option>
-                </select>
-
-                <label>Filter by Sentiment:</label>
-                <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)}>
-                    <option value="">All</option>
-                    <option value="positive">Positive</option>
-                    <option value="negative">Negative</option>
-                    <option value="neutral">Neutral</option>
-                </select>
+                <div className="filter-comment">
+                    <label><strong>Filter by Sentiment:</strong></label>
+                    <select value={filterSentiment} onChange={(e) => setFilterSentiment(e.target.value)}>
+                        <option value="">All</option>
+                        <option value="positive">Positive</option>
+                        <option value="negative">Negative</option>
+                        <option value="neutral">Neutral</option>
+                    </select>
+                </div>
+                <div className="filter-comment">
+                    <label><strong>Filter by Type:</strong></label>
+                    <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="type-filter">
+                        <option value="">All</option>
+                        <option value="CSV File">CSV File</option>
+                        <option value="Excel File">Excel File</option>
+                        <option value="Youtube">Youtube Comment</option>
+                    </select>
+                </div>
 
                 <button onClick={() => handleFilter('batch')} className="filter-btn">Apply Filters</button>
             </div>
@@ -147,7 +149,7 @@ const ManageBatch = () => {
                     <span class="sr-only">Loading...</span>
                 </div></div>) :
                 (filteredBatches.length > 0 ? (
-                    <table border="1" width="100%" cellPadding="8" className="dashboard-table">
+                    <table className="table">
                         <thead>
                             <tr>
                                 <th>Index</th>
@@ -175,14 +177,14 @@ const ManageBatch = () => {
                                         <td>{batch.comment_type}</td>
                                         <td>{date}</td>
                                         <td>{time}</td>
-                                        <td className={`dashboard-${batch.overall_sentiment}`}>{batch.overall_sentiment || "N/A"}</td>
+                                        <td className={`table-${batch.overall_sentiment}`}>{batch.overall_sentiment || "N/A"}</td>
                                         <td>
-                                            <button onClick={() => navigate(`${batch.id}`)} className="table-btnn">
+                                            <button onClick={() => navigate(`${batch.id}`)} className="confirm-btn">
                                                 View Comments
                                             </button>
                                         </td>
                                         <td>
-                                            <button onClick={() => handleDelete(batch.id)} className="confirm-btn">Delete</button>
+                                            <button onClick={() => handleDelete(batch.id)} className="delete-btn">Delete</button>
                                         </td>
                                     </tr>
                                 );

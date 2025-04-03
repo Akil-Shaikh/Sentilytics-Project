@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState, useEffect,useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import DownloadButton from '../components/downloadButton';
 import { Line, Bar, Pie } from "react-chartjs-2";
@@ -130,16 +130,16 @@ const YoutubeComment = () => {
                             </div></div>
                     ) : analyzedComments.length > 0 ? (
                         <>
-                            <button onClick={() => navigate(`/batch/${batchId}`)} className="detail-btn">Get More Details</button>
-                            {activeTab === "comments" ? <DownloadButton batch_Id={batchId} comment_type="Youtube" />
-                                : <button className="btn-download" onClick={downloadChart}>Download Chart</button>}
                             <div className="tab-container">
-                                <button className={`tab ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")}>
+                                <button className={`btn-pages ${activeTab === "comments" ? "active" : ""}`} onClick={() => setActiveTab("comments")}>
                                     Comments
                                 </button>
-                                <button className={`tab ${activeTab === "chart" ? "active" : ""}`} onClick={() => setActiveTab("chart")}>
+                                <button className={`btn-pages ${activeTab === "chart" ? "active" : ""}`} onClick={() => setActiveTab("chart")}>
                                     Charts
                                 </button>
+                                <button onClick={() => navigate(`/dashboard/batch/${batchId}`)} className="btn-pages">Get More Details</button>
+                                {activeTab === "comments" ? <DownloadButton batch_Id={batchId} comment_type={analyzedComments.comment_type} />
+                                    : <button className="btn-pages" onClick={downloadChart}>Download Chart</button>}
                             </div>
 
                             {activeTab === "chart" && (
@@ -172,7 +172,7 @@ const YoutubeComment = () => {
                                                 </select>
                                             </div>
 
-                                            <table className="yt-table">
+                                            <table className="table">
                                                 <thead>
                                                     <tr>
                                                         <th>Index</th>
@@ -185,8 +185,8 @@ const YoutubeComment = () => {
                                                     {filteredComments.map((comment, index) => (
                                                         <tr key={comment.id}>
                                                             <td>{index + 1}</td>
-                                                            <td className={`comment ${comment.comment.length>400 && "expandable"}`}>{comment.comment}</td>
-                                                            <td className={`yt-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
+                                                            <td className={`comment ${comment.comment.length > 400 && "expandable"}`}>{comment.comment}</td>
+                                                            <td className={`table-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
                                                             <td>{comment.score || "N/A"}</td>
                                                         </tr>
                                                     ))}
