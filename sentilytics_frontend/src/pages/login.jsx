@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 
 function Login() {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         username: "",
         password: "",
@@ -77,11 +78,9 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        if (!validateForm()) {
-            return;
-        }
-
+        if (!validateForm()) return;
+        setLoading(true);
+    
         try {
             const response = await fetch("http://127.0.0.1:8000/api/login/", {
                 method: "POST",
@@ -98,16 +97,17 @@ function Login() {
                 localStorage.setItem("token", data.token);
                 navigate("/");
             } else {
-                // Handle API authentication errors
                 const errorMessage = data.error || "Invalid username or password";
                 setErrors(prev => ({ ...prev, general: errorMessage }));
             }
         } catch (error) {
             console.error("Error:", error);
-            setErrors(prev => ({ 
-                ...prev, 
-                general: "Connection error. Please check your internet connection and try again." 
+            setErrors(prev => ({
+                ...prev,
+                general: "Connection error. Please check your internet connection and try again."
             }));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -150,7 +150,7 @@ function Login() {
                     <p>Need Account? <Link to="/register" className="link">Create an account</Link></p>
                     
                     <div className="login-btn">
-                        <input type="submit" value="Log in" className="login-top" />
+                        <input type="submit" value={loading?"Logging in...":"Log in"} disabled={loading} className={!loading?"login-top":"login-loading"} />
                     </div>
                 </form>
             </div>

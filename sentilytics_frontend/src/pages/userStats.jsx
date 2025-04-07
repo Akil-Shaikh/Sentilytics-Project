@@ -68,7 +68,7 @@ const UserStats = () => {
         ],
     };
 
-    if (loading) return <h2>Loading Dashboard...</h2>;
+    if (loading) return <h2>Loading Stats...</h2>;
     if (error) return <h2>Error: {error}</h2>;
 
     return (

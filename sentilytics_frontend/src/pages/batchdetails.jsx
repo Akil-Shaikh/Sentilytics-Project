@@ -5,6 +5,7 @@ import "chart.js/auto";
 import "../styles/batchdetails.css";
 import PageNotFound from "./pagenotfound";
 import DownloadButton from "../components/downloadButton";
+import Swal from "sweetalert2";
 
 const formatDate = (isoString) => {
     return new Date(isoString).toLocaleString("en-US", {
@@ -84,25 +85,38 @@ const BatchDetails = () => {
     }, [batch_id, navigate]);
 
     const handleDelete = async (batchId) => {
-        if (!window.confirm("Are you sure you want to delete this comment?")) return;
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This Batch will be permanently deleted!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`http://127.0.0.1:8000/api/multiple/batch/${batchId}/`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Token ${localStorage.getItem("token")}`,
+                        },
+                    });
 
-        try {
-            const response = await fetch(`http://127.0.0.1:8000/api/multiple/batch/${batchId}/`, {
-                method: "DELETE",
-                headers: {
-                    Authorization: `Token ${localStorage.getItem("token")}`,
-                },
-            });
+                    if (response.ok) {
+                        Swal.fire("Deleted!", "The Batch has been deleted.", "success");
+                        navigate(-1);
 
-            if (response.ok) {
-                alert("Batch deleted sucessfully")
-                navigate(-1)
-            } else {
-                alert("Failed to delete comment.");
+                    } else {
+                        Swal.fire("Failed!", "Failed to delete the Batch.", "error");
+                    }
+                } catch (error) {
+                    Swal.fire("Error!", "Something went wrong.", "error");
+                    console.error("Delete error:", error);
+                }
             }
-        } catch (error) {
-            alert("Error deleting comment.");
-        }
+        });
     };
 
     if (loading) {
@@ -128,7 +142,11 @@ const BatchDetails = () => {
 
     const toggleEditMode = () => {
         if (!editMode) {
-            alert("You can only edit a sentiment once. Please provide genuine feedback to help improve the model.");
+            Swal.fire({
+                icon: "info",
+                title: "Notice!",
+                text: "You can only edit a sentiment once. Please provide genuine feedback to help improve the model.",
+            });
         }
         setEditMode(!editMode);
     };
@@ -185,7 +203,7 @@ const BatchDetails = () => {
                     <p><strong>Date Created:</strong> {formatDate(batchData?.date_created)}</p>
                     <p>Note: If the model predicted a comment sentiment incorrectly, you can correct it below.</p>
                 </div>
-                
+
                 <div className="tab-container">
                     <button className={`btn-pages ${activeTab === "comments" ? "page-active" : ""}`} onClick={() => { setActiveTab("comments"); }}>
                         Comments
@@ -196,8 +214,8 @@ const BatchDetails = () => {
                     {activeTab === "comments" ? <DownloadButton batch_Id={batch_id} comment_type={batchData?.comment_type} />
                         : <button className="btn-pages" onClick={downloadChart}>Download Chart</button>}
                     <button onClick={() => handleDelete(batch_id)} className="btn-pages delete-btn">Delete</button>
-                    <button onClick={toggleEditMode} className="btn-pages">{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>
-                    
+                    {activeTab === "comments" && <button onClick={toggleEditMode} className="btn-pages">{editMode ? "Exit Edit Mode" : "Enable Edit Mode"}</button>}
+
 
                 </div>
             </div>
@@ -218,7 +236,7 @@ const BatchDetails = () => {
                 </div>)}
             {activeTab === "comments" && (
                 <div className="batch-comment-all">
-                    
+
                     <div className="filter-comment">
                         <label><strong>Filter Comments:</strong></label>
                         <select value={filter} onChange={(e) => setFilter(e.target.value)}>

@@ -5,6 +5,7 @@ import DownloadButton from '../components/downloadButton';
 import { Line, Bar, Pie } from "react-chartjs-2";
 import "chart.js/auto";
 import "../styles/youtubeComment.css"
+import Swal from 'sweetalert2';
 
 const YoutubeComment = () => {
     const navigate = useNavigate();
@@ -81,11 +82,18 @@ const YoutubeComment = () => {
                 setbarchart(data.BarChart);
                 setwordcloud(data.wordcloud);
             } else {
-                alert(`Error: ${data.error}`);
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.error,
+                });
             }
         } catch (error) {
-            console.error("Error:", error);
-            alert("Something went wrong!");
+            Swal.fire({
+                icon: "error",
+                title: "error Failed",
+                text: "Something went Wrong",
+            });
         } finally {
             setLoading(false);
         }
@@ -113,7 +121,7 @@ const YoutubeComment = () => {
                     <input type="text" id="url" name="vid_url" className="yt-input" onChange={handlevidnChange} disabled={loading} placeholder='Youtube URL' />
                     <input type="text" name="batchname" value={batchname} onChange={handlebatchnameChange} placeholder="Enter batch name" className="multi-input" disabled={loading} />
 
-                    <input type="submit" value="Submit" className="btn-pages" disabled={loading} />
+                    <input type="submit" value={loading?"Analyzing...":"Submit"} className="btn-pages" disabled={loading} />
 
                 </form>
             </div>

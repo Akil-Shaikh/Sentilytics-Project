@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import "chart.js/auto";
 import "../styles/multiComment.css";
+import Swal from "sweetalert2";
 import DownloadButton from "../components/downloadButton";
 
 const MultiComment = () => {
@@ -67,8 +68,12 @@ const MultiComment = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         const token = localStorage.getItem("token");
-        if (!file || !column) {
-            alert("Please select a file and enter a column name.");
+        if (!file || !column || !batchname) {
+            Swal.fire({
+                icon: "error",
+                title: "Incomplete Input",
+                text: "Please select a file and enter a column name and a Batch name.",
+            });
             return;
         }
 
@@ -93,7 +98,11 @@ const MultiComment = () => {
                 setbarchart(data.BarChart);
                 setwordcloud(data.wordcloud);
             } else {
-                alert(`Error: ${data.error}`);
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.error,
+                });
             }
         } catch (error) {
             console.error("Error:", error);
@@ -127,7 +136,7 @@ const MultiComment = () => {
                     {fileName && <p>File Name: {fileName}</p>}
                     <input type="text" name="column" value={column} onChange={handleColumnChange} placeholder="Enter column name" className="multi-input" disabled={loading} />
                     <input type="text" name="batchname" value={batchname} onChange={handlebatchnameChange} placeholder="Enter batch name" className="multi-input" disabled={loading} />
-                    <input type="submit" value="Submit" className="btn-pages" disabled={loading} />
+                    <input type="submit" value={loading?"Analyzing...":"Submit"} className="btn-pages" disabled={loading} />
                 </form>
             </div>
 

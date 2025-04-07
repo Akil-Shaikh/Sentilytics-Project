@@ -2,6 +2,7 @@ import "../styles/register.css";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 function Register() {
     const navigate = useNavigate();
@@ -11,7 +12,7 @@ function Register() {
         password: "",
         confirmPassword: "",
     });
-    
+
     const [errors, setErrors] = useState({
         username: "",
         email: "",
@@ -20,9 +21,15 @@ function Register() {
     });
 
     const validateUsername = (username) => {
-        if (username.length < 3) {
-            return "Username must be at least 3 characters";
+        if (username.length <= 3) {
+            return "Username must be at least 4 characters long.";
         }
+
+        const validUsernameRegex = /^[a-zA-Z0-9_]+$/;
+        if (!validUsernameRegex.test(username)) {
+            return "Username can only contain letters, numbers, and underscores (_).";
+        }
+
         return "";
     };
 
@@ -35,14 +42,33 @@ function Register() {
     };
 
     const validatePassword = (password) => {
+        const errors = [];
+
+        const hasLowercase = /[a-z]/.test(password);
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+
+        const missing = [];
+
+        if (!hasLowercase) missing.push("one lowercase letter");
+        if (!hasUppercase) missing.push("one uppercase letter");
+        if (!hasNumber) missing.push("one number");
+
+        // If length is less than 8, prepend that requirement
         if (password.length < 8) {
-            return "Password must be at least 8 characters";
+            if (missing.length > 0) {
+                return `Password must be at least 8 characters long and must include at least ${missing.join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
+            } else {
+                return `Password must be at least 8 characters long.`;
+            }
         }
-        const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
-        if (!specialCharRegex.test(password)) {
-            return "Password must include at least one special character";
+
+        // If length is okay but other constraints missing
+        if (missing.length > 0) {
+            return `Password must include at least ${missing.join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
         }
-        return "";
+
+        return ""; // All good
     };
 
     const validateConfirmPassword = (confirmPassword, password) => {
@@ -55,7 +81,7 @@ function Register() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-        
+
         // Validate field on change
         let error = "";
         switch (name) {
@@ -79,7 +105,7 @@ function Register() {
             default:
                 break;
         }
-        
+
         setErrors(prev => ({ ...prev, [name]: error }));
     };
 
@@ -88,20 +114,20 @@ function Register() {
         const emailError = validateEmail(formData.email);
         const passwordError = validatePassword(formData.password);
         const confirmPasswordError = validateConfirmPassword(formData.confirmPassword, formData.password);
-        
+
         setErrors({
             username: usernameError,
             email: emailError,
             password: passwordError,
             confirmPassword: confirmPasswordError,
         });
-        
+
         return !(usernameError || emailError || passwordError || confirmPasswordError);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
@@ -121,12 +147,19 @@ function Register() {
             if (response.ok) {
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("username", formData.username);
-                alert("Registered successfully!");
-                navigate("/");
+
+                // SweetAlert2 success popup
+                Swal.fire({
+                    icon: "success",
+                    title: "Registered successfully!",
+                    showConfirmButton: true,
+                    confirmButtonText: "OK"
+                }).then(() => {
+                    navigate("/");
+                });
+
             } else {
-                // Handle API validation errors
                 if (data.error) {
-                    // If the API returns field-specific errors
                     if (typeof data.error === 'object') {
                         const apiErrors = {};
                         Object.keys(data.error).forEach(field => {
@@ -134,16 +167,27 @@ function Register() {
                         });
                         setErrors(prev => ({ ...prev, ...apiErrors }));
                     } else {
-                        // General error
-                        alert("Registration failed: " + data.error);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Registration Failed",
+                            text: data.error,
+                        });
                     }
                 } else {
-                    alert("Registration failed. Please try again.");
+                    Swal.fire({
+                        icon: "error",
+                        title: "Registration Failed",
+                        text: "Please try again.",
+                    });
                 }
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("Registration failed. Please check your connection and try again.");
+            Swal.fire({
+                icon: "error",
+                title: "Network Error",
+                text: "Registration failed. Please check your connection and try again.",
+            });
         }
     };
 
@@ -159,48 +203,48 @@ function Register() {
                 <h1 className="register-heading">Register</h1>
                 <form onSubmit={handleSubmit} className="register-form">
                     <label>Name:</label>
-                    <input 
-                        type="text" 
-                        name="username" 
-                        className={`register-input ${errors.username ? 'error-input' : ''}`} 
-                        value={formData.username} 
-                        onChange={handleChange} 
-                        required 
+                    <input
+                        type="text"
+                        name="username"
+                        className={`register-input ${errors.username ? 'error-input' : ''}`}
+                        value={formData.username}
+                        onChange={handleChange}
+                        required
                     />
                     {errors.username && <div className="error-message">{errors.username}</div>}
 
                     <label>Email:</label>
-                    <input 
-                        type="email" 
-                        name="email" 
-                        className={`register-input ${errors.email ? 'error-input' : ''}`} 
-                        value={formData.email} 
-                        onChange={handleChange} 
-                        required 
+                    <input
+                        type="email"
+                        name="email"
+                        className={`register-input ${errors.email ? 'error-input' : ''}`}
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
                     />
                     {errors.email && <div className="error-message">{errors.email}</div>}
 
                     <label>Password:</label>
-                    <input 
-                        type="password" 
-                        name="password" 
-                        className={`register-input ${errors.password ? 'error-input' : ''}`} 
-                        value={formData.password} 
-                        onChange={handleChange} 
-                        required 
+                    <input
+                        type="password"
+                        name="password"
+                        className={`register-input ${errors.password ? 'error-input' : ''}`}
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
                     />
                     {errors.password && <div className="error-message">{errors.password}</div>}
-                    
-                   
-                  
+
+
+
                     <label>Confirm Password:</label>
-                    <input 
-                        type="password" 
-                        name="confirmPassword" 
-                        className={`register-input ${errors.confirmPassword ? 'error-input' : ''}`} 
-                        value={formData.confirmPassword} 
-                        onChange={handleChange} 
-                        required 
+                    <input
+                        type="password"
+                        name="confirmPassword"
+                        className={`register-input ${errors.confirmPassword ? 'error-input' : ''}`}
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
                     />
                     {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
 

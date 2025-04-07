@@ -12,15 +12,15 @@ const Developers = () => {
     {
       name: "Shahid Shaikh",
       role: "Frontend Developer",
-      github: "https://github.com/shahidshaikh",
-      linkedin: "https://linkedin.com/in/shahidshaikh",
+      github: "http://github.com/shahid-0812/",
+      linkedin: "https://www.linkedin.com/in/shahidshaikh555/",
      
     },
     {
       name: "Akbar Ali",
-      role: "Half PPT Maker",
-      github: "https://github.com/akbarali",
-      linkedin: "https://linkedin.com/in/akbarali",
+      role: "Backend Developer",
+      github: "https://github.com/AkbarALIIII ",
+      linkedin: "https://www.linkedin.com/in/akbar-ali-musamji-008212238/",
     
     }
   ];

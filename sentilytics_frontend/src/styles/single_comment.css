@@ -2,14 +2,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
+    min-height: 70vh;
     background: #F7F4EF;
     /* Project's main color */
     font-family: 'Poppins', sans-serif;
     color: #111;
     text-align: center;
     padding: 20px;
-    margin-top: 4rem;
+    margin-top: 8rem;
 }
 
 .single-comment h1 {

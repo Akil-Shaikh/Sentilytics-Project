@@ -1,5 +1,6 @@
 import "../styles/single_comment.css";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 function SingleComment() {
     const [text, setText] = useState("");
@@ -8,11 +9,29 @@ function SingleComment() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         const token = localStorage.getItem("token");
-
-        if (!text.trim()) {
-            alert("Please enter a comment before submitting.");
+        const trimmed = text.trim();
+        if (!trimmed) {
+            Swal.fire({
+                icon: "error",
+                title: "Analysis Failed",
+                text: "Please enter a comment before submitting.",
+            });
             return;
         }
+        const cleaned = trimmed.replace(/[^\w\s]/g, "");
+
+        // Match at least one or more words with 2+ letters
+        const words = cleaned.match(/\b[a-zA-Z]{2,}\b/g);
+
+        if (!words || words.length < 1) {
+            Swal.fire({
+                icon: "error",
+                title: "Analysis Failed",
+                text: "Please enter at least one valid word .",
+            });
+            return;
+        }
+
 
         const formData = new FormData();
         formData.append("text", text);

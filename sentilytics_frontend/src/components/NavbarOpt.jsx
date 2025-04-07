@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import "../styles/navbaropt.css";
+import Swal from 'sweetalert2';
 import { Link, useNavigate } from "react-router-dom";
 
 const NavbarOpt = () => {
@@ -22,12 +23,43 @@ const NavbarOpt = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        // alert("Logged out successfully!");
-        navigate("/login");
-        window.location.reload();
-    };
+    const handleLogout = async () => {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Log Out!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Yes,Log Out!",
+                cancelButtonText: "Cancel",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const token = localStorage.getItem("token");
+                        const response = await fetch('http://127.0.0.1:8000/api/logout/', {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Token ${token}`,
+                            },
+                        });
+    
+                        if (response.ok) {
+                            localStorage.removeItem("token");
+                            localStorage.removeItem("username");
+                            Swal.fire("Success!", "Logged Out Sucessfully!.", "success");
+                            navigate("/");
+    
+                        } else {
+                            Swal.fire("Failed!", "Failed to Log Out.", "error");
+                        }
+                    } catch (error) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.error("Delete error:", error);
+                    }
+                }
+            });
+        };
 
     return (
         <header className="header">

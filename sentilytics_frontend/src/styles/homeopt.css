@@ -24,14 +24,14 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 87vh;
-    gap: 5rem;
+    gap: 3rem;
     padding: 5rem 0;
     width: 100%;
 }
 
 .hero-text {
     text-align: center;
-    width: 40rem;
+    width: 35rem;
     padding: 3rem;
     display: flex;
     align-items: center;
@@ -40,9 +40,9 @@ body {
 }
 
 .hero-text h1 {
-    font-size: 5rem;
+    font-size: 3rem;
     font-family: "heading";
-    line-height: 5rem;
+    line-height: 3rem;
 }
 
 .hero-text p {
@@ -52,8 +52,8 @@ body {
 
 /* Placeholder for images in the hero section */
 .image-placeholder {
-    width: 800px;
-    background-color: #ff1515;
+    width: 700px;
+    /* background-color: #ff1515; */
     border-radius: 10px;
     display: flex;
     justify-content: center;
@@ -61,6 +61,10 @@ body {
     font-size: 48px;
     color: #333;
     font-weight: bold;
+}
+
+.image-placeholder img{
+    height: 450px;
 }
 
 .image-placeholder img{
@@ -89,7 +93,7 @@ body {
     display: flex;
     align-items: center;
     padding: 0 4rem;
-    width: 65%;
+    width: 75%;
     gap: 8rem;
     /* background-color: red; */
 }

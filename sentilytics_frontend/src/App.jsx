@@ -32,7 +32,6 @@ const UserLayout = () => {
       <div className="main-content">
         <Outlet />
       </div>
-      <Footer />
     </div>
   );
 };
