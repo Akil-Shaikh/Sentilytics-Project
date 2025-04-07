@@ -11,7 +11,7 @@ const NavbarOpt = () => {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
-        setIsLoggedIn(!!localStorage.getItem("token"));
+        setIsLoggedIn(localStorage.getItem("token"));
 
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -47,8 +47,10 @@ const NavbarOpt = () => {
                         if (response.ok) {
                             localStorage.removeItem("token");
                             localStorage.removeItem("username");
-                            Swal.fire("Success!", "Logged Out Sucessfully!.", "success");
-                            navigate("/");
+                            Swal.fire("Success!", "Logged out successfully!", "success").then(() => {
+                                navigate("/");              
+                                window.location.reload();
+                            });
     
                         } else {
                             Swal.fire("Failed!", "Failed to Log Out.", "error");
