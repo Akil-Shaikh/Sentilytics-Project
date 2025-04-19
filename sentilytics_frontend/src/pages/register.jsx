@@ -12,7 +12,7 @@ function Register() {
         password: "",
         confirmPassword: "",
     });
-
+    const [loading,setLoading]=useState(false)
     const [errors, setErrors] = useState({
         username: "",
         email: "",
@@ -23,6 +23,9 @@ function Register() {
     const validateUsername = (username) => {
         if (username.length <= 3) {
             return "Username must be at least 4 characters long.";
+        }
+        if (username.length > 20) {
+            return "Username must be less then 20 characters.";
         }
 
         const validUsernameRegex = /^[a-zA-Z0-9_]+$/;
@@ -131,7 +134,7 @@ function Register() {
         if (!validateForm()) {
             return;
         }
-
+        setLoading(true)
         try {
             const response = await fetch("http://127.0.0.1:8000/api/register/", {
                 method: "POST",
@@ -188,6 +191,9 @@ function Register() {
                 title: "Network Error",
                 text: "Registration failed. Please check your connection and try again.",
             });
+        }
+        finally{
+            setLoading(false)
         }
     };
 
@@ -250,7 +256,7 @@ function Register() {
 
                     <p>Already have an account? <Link to="/login" className="link">Log in</Link></p>
                     <div className="register-btn">
-                        <input type="submit" value="Submit" className="register-top" />
+                        <input type="submit" value={loading?"Registering...":"Register"} disabled={loading} className={!loading?"register-top":"login-loading"} />
                     </div>
                 </form>
             </div>

@@ -16,6 +16,8 @@ def is_valid_username(username):
     """Validate username format"""
     if len(username) < 4:
         return "Username must be at least 4 characters long."
+    if len(username) > 20:
+        return "Username must be less then 20 characters."
     if not re.match(r'^[a-zA-Z0-9_]+$', username):
         return "Username can only contain letters, numbers, and underscores (_)."
     return None

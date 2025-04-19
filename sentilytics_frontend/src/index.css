@@ -88,8 +88,10 @@
 
 .comment {
     word-wrap: break-word;
+    overflow-wrap: anywhere;
     white-space: normal;
     text-align: left;
+    max-width: 100%;
 }
 
 /* Header */

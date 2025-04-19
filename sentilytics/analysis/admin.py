@@ -38,7 +38,7 @@ class BatchCommentAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'batch_id', 'comment', 'sentiment', 'score', 'date_created', 'updated_at', 'is_updated','comment_type')
+    list_display = ('id', 'batch_id', 'comment','cleaned_text' ,'sentiment', 'score', 'date_created', 'updated_at', 'is_updated','comment_type')
     search_fields = ('comment', 'sentiment','comment_type')
     list_filter = ('sentiment', 'is_updated', 'date_created','comment_type')
     readonly_fields = ('date_created', 'updated_at')

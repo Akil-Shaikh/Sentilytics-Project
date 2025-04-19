@@ -56,9 +56,10 @@ class Preprocessor:
 def generateWordcloud(data):
     df=pd.DataFrame(data)
     buf_word=BytesIO()
+    df=df[df["sentiment"]=="positive"]
     text = " ".join(df["cleaned_text"].dropna())
     if text.strip():  # Generate word cloud only if there is valid text
-        wordcloud = WordCloud(width=600, height=400, background_color="floralwhite").generate(text)
+        wordcloud = WordCloud(width=600, height=400, background_color="floralwhite",max_words=50).generate(text)
         wordcloud.to_image().save(buf_word, format="PNG")
     buf_word.seek(0)
     return buf_word

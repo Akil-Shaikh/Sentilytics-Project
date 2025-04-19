@@ -45,6 +45,15 @@ const MultiComment = () => {
         }
     }, [navigate]);
 
+    const commentsRef = useRef(null);
+
+    useEffect(() => {
+        if (analyzedComments.length > 0 && activeTab === "comments") {
+            commentsRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [analyzedComments, activeTab]);
+
+
     const filteredComments = analyzedComments.filter((comment) => {
         if (filter === "all") return true;
         return comment.sentiment.toLowerCase() === filter;
@@ -134,9 +143,9 @@ const MultiComment = () => {
                     <label htmlFor="file-upload" className="multi-file">Choose Files</label>
                     <input type="file" id="file-upload" accept=".csv,.xlsx" name="file" onChange={handleFileChange} className="hidden-file" disabled={loading} />
                     {fileName && <p>File Name: {fileName}</p>}
-                    <input type="text" name="column" value={column} onChange={handleColumnChange} placeholder="Enter column name" className="multi-input" disabled={loading} />
-                    <input type="text" name="batchname" value={batchname} onChange={handlebatchnameChange} placeholder="Enter batch name" className="multi-input" disabled={loading} />
-                    <input type="submit" value={loading?"Analyzing...":"Submit"} className="btn-pages" disabled={loading} />
+                    <input type="text" name="column" value={column} onChange={handleColumnChange} placeholder="Enter column name from File" className="multi-input" disabled={loading} />
+                    <input type="text" name="batchname" value={batchname} onChange={handlebatchnameChange} placeholder="Enter batch name to save with" className="multi-input" disabled={loading} />
+                    <input type="submit" value={loading ? "Analyzing..." : "Submit"} className="btn-pages" disabled={loading} />
                 </form>
             </div>
 
@@ -155,14 +164,14 @@ const MultiComment = () => {
                     ) : analyzedComments.length > 0 ? (
                         <>
                             <div className="tab-container">
+                                <button onClick={() => setActiveTab("comments")} className={`btn-pages ${activeTab === "comments" ? "page-active" : ""}`} > Comments</button>
+                                <button onClick={() => setActiveTab("chart")} className={`btn-pages ${activeTab === "chart" ? "page-active" : ""}`} > Charts</button>
                                 <button onClick={() => navigate(`/dashboard/batch/${batchId}`)} className="btn-pages">Get More Details</button>
                                 {
                                     activeTab === "comments" ? <DownloadButton batch_Id={batchId} comment_type={analyzedComments.comment_type} />
                                         :
                                         <button className="btn-pages" onClick={downloadChart}>Download Chart</button>
                                 }
-                                <button onClick={() => setActiveTab("comments")} className={`btn-pages ${activeTab === "comments" ? "page-active" : ""}`} > Comments</button>
-                                <button onClick={() => setActiveTab("chart")} className={`btn-pages ${activeTab === "chart" ? "page-active" : ""}`} > Charts</button>
                             </div>
 
                             {activeTab === "chart" && (
@@ -182,7 +191,7 @@ const MultiComment = () => {
                             }
 
                             {activeTab === "comments" && (
-                                <div className="multi-comment-all">
+                                <div className="multi-comment-all" ref={commentsRef}>
                                     {filteredComments.length > 0 ? (
                                         <>
                                             <div className="filter-comment">

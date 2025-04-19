@@ -21,6 +21,14 @@ const YoutubeComment = () => {
     const barRef = useRef(null);
     const lineRef = useRef(null);
 
+    const commentsRef = useRef(null);
+
+    useEffect(() => {
+        if (analyzedComments.length > 0 && activeTab === "comments") {
+            commentsRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [analyzedComments, activeTab]);
+
     const downloadChart = () => {
         const b64_b = barRef.current.toBase64Image();
         const b64_l = lineRef.current.toBase64Image();
@@ -78,7 +86,7 @@ const YoutubeComment = () => {
 
             if (response.ok) {
                 setBatchId(data.batch_id)
-                setAnalyzedComments(data.analyzed_comments); // ✅ Store data in state
+                setAnalyzedComments(data.analyzed_comments);
                 setbarchart(data.BarChart);
                 setwordcloud(data.wordcloud);
             } else {
@@ -119,14 +127,11 @@ const YoutubeComment = () => {
                 <form action="" onSubmit={handleSubmit} className='yt-form'>
                     <label htmlFor="url" className='yt-label'>Enter URL : </label>
                     <input type="text" id="url" name="vid_url" className="yt-input" onChange={handlevidnChange} disabled={loading} placeholder='Youtube URL' />
-                    <input type="text" name="batchname" value={batchname} onChange={handlebatchnameChange} placeholder="Enter batch name" className="multi-input" disabled={loading} />
-
+                    <input type="text" name="batchname" value={batchname} onChange={handlebatchnameChange} placeholder="Enter batch name to save with" className="multi-input" disabled={loading} />
                     <input type="submit" value={loading?"Analyzing...":"Submit"} className="btn-pages" disabled={loading} />
-
                 </form>
             </div>
-
-            <div className="yt-comments-section">
+            <div className="yt-comments-section" ref={commentsRef}>
                 <h1>Analyzed Comments</h1>
                 {
                     loading ? (
@@ -140,33 +145,15 @@ const YoutubeComment = () => {
                     ) : analyzedComments.length > 0 ? (
                         <>
                             <div className="tab-container">
-
+                                <button onClick={() => setActiveTab("comments")} className={`btn-pages ${activeTab === "comments" ? "page-active" : ""}`} > Comments</button>
+                                <button onClick={() => setActiveTab("chart")} className={`btn-pages ${activeTab === "chart" ? "page-active" : ""}`} > Charts</button>
                                 <button onClick={() => navigate(`/dashboard/batch/${batchId}`)} className="btn-pages">Get More Details</button>
-
-
                                 {
                                     activeTab === "comments" ? <DownloadButton batch_Id={batchId} comment_type="Youtube" />
                                         :
                                         <button onClick={downloadChart} className="btn-pages" >Download Charts</button>
-
-
                                 }
-
-
-
-
-
-
-                                <button onClick={() => setActiveTab("comments")} className={`btn-pages ${activeTab === "comments" ? "page-active" : ""}`} > Comments</button>
-
-
-
-
-                                <button onClick={() => setActiveTab("chart")} className={`btn-pages ${activeTab === "chart" ? "page-active" : ""}`} > Charts</button>
-
-
                             </div>
-
                             {activeTab === "chart" && (
                                 <div className="chart-container">
                                     <h2>Sentiment Distribution</h2>
@@ -184,7 +171,7 @@ const YoutubeComment = () => {
                                 </div>)}
 
                             {activeTab === "comments" && (
-                                <div className="yt-comment-all">
+                                <div className="yt-comment-all" >
                                     {filteredComments.length > 0 ? (
                                         <>
                                             <div className="filter-comment">
@@ -211,7 +198,7 @@ const YoutubeComment = () => {
                                                         <tr key={comment.id}>
                                                             <td>{index + 1}</td>
                                                             <td className={`comment ${comment.comment.length > 400 && "expandable"}`}> {comment.comment}</td>
-                                                            <td className={`yt-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
+                                                            <td className={`table-${comment.sentiment}`}>{comment.sentiment || "N/A"}</td>
                                                             <td>{comment.score || "N/A"}</td>
                                                         </tr>
                                                     ))}
